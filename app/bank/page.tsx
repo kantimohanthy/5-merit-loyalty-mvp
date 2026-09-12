@@ -1,499 +1,275 @@
 "use client";
 
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import {
-  ArrowLeft,
-  Users,
-  Activity,
-  TrendingUp,
-  Repeat,
-  Network,
-  Globe2,
-  GraduationCap,
   Sparkles,
-  Target,
+  ArrowRight,
+  X,
+  CreditCard,
+  Send,
+  Receipt,
+  Shield,
+  HelpCircle,
 } from "lucide-react";
 import { useDemo } from "@/lib/demo-context";
-import { ConnectionStatus } from "@/components/ConnectionStatus";
-import { Card, Pill, ProgressBar, SectionLabel } from "@/components/ui";
+import { formatEuro } from "@/lib/utils";
 
-interface BankCustomer {
-  id: string;
-  name: string;
-  profile: string;
-  memberSince: string;
-  live: boolean;
-  behavioral: { label: string; value: number }[];
-  campaign: {
-    merchant: string;
-    title: string;
-    reason: string;
-    objective: string;
-  };
+function greeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
 }
 
-// Only one customer here is real — Jamie is an illustrative second profile
-// so the jury sees the dashboard isn't a single-row demo. Never blur the two:
-// Alex is labeled Live and is read straight from the same backend snapshot
-// driving the Customer Wallet demo; Jamie is labeled Simulated.
-const JAMIE_NOVAK: BankCustomer = {
-  id: "jamie-002",
-  name: "Jamie Novak",
-  profile: "Student",
-  memberSince: "Jan 2026",
-  live: false,
-  behavioral: [
-    { label: "Budget consistency", value: 0.62 },
-    { label: "Savings consistency", value: 0.55 },
-    { label: "Payment regularity", value: 0.58 },
-    { label: "Liquidity stability", value: 0.5 },
-    { label: "Goal completion", value: 0.48 },
-  ],
-  campaign: {
-    merchant: "Spotify",
-    title: "1 month free",
-    reason: "Consistent subscription spend + building a savings streak.",
-    objective: "Engagement & habit formation",
-  },
-};
+export default function PlainXYZBankDashboard() {
+  const router = useRouter();
+  const { customer, plan, transactions, status } = useDemo();
+  const [showPopup, setShowPopup] = useState(false);
 
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-  sub,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-  sub: string;
-}) {
-  return (
-    <Card className="p-5">
-      <div className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-navy-900/5 text-navy-800">
-          <Icon size={16} />
-        </div>
-        <SectionLabel>{label}</SectionLabel>
-      </div>
-      <div className="mt-2.5 font-display text-3xl text-ink">{value}</div>
-      <div className="mt-1 text-sm text-navy-500">{sub}</div>
-    </Card>
-  );
-}
+  useEffect(() => {
+    const popupDismissed = sessionStorage.getItem("gcore_popup_seen");
+    if (!popupDismissed) {
+      const timer = setTimeout(() => {
+        setShowPopup(true);
+      }, 4500);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
-const NAVY = "#131c33";
-const SAGE = "#8896b8";
-const GREEN = "#3d8148";
-
-export default function BankDashboardPage() {
-  const { bank, customer, status, rewards, rewardDetails } = useDemo();
-  const [selectedId, setSelectedId] = useState("alex-001");
-
-  // Alex's card is built live from the exact same pipeline snapshot driving
-  // the Customer Wallet demo — whatever the jury just watched happen there
-  // (Simulate Month, a reward unlocking) shows up here too, no re-fetch.
-  const bestReward =
-    rewards.find((r) => r.status === "unlocked") ??
-    [...rewards]
-      .filter((r) => r.status === "locked")
-      .sort((a, b) => (b.progress ?? 0) - (a.progress ?? 0))[0];
-  const bestWhy = bestReward
-    ? rewardDetails.find((d) => d.id === bestReward.id)?.why ?? []
-    : [];
-
-  const liveAlex: BankCustomer = {
-    id: "alex-001",
-    name: customer.name,
-    profile: customer.profile,
-    memberSince: customer.memberSince,
-    live: true,
-    behavioral: status.dimensions.map((d) => ({ label: d.label, value: d.score })),
-    campaign: bestReward
-      ? {
-          merchant: bestReward.merchant,
-          title: bestReward.title,
-          reason:
-            bestReward.status === "unlocked"
-              ? bestWhy.join(" + ") || bestReward.reason || ""
-              : bestReward.requirement ?? "",
-          objective:
-            bestReward.status === "unlocked"
-              ? "Engagement & retention"
-              : "Engagement & habit formation",
-        }
-      : {
-          merchant: "—",
-          title: "",
-          reason: "No eligible campaign yet this cycle.",
-          objective: "—",
-        },
+  const handleDismissPopup = () => {
+    setShowPopup(false);
+    sessionStorage.setItem("gcore_popup_seen", "true");
   };
 
-  const BANK_CUSTOMERS: BankCustomer[] = [liveAlex, JAMIE_NOVAK];
-  const selected =
-    BANK_CUSTOMERS.find((c) => c.id === selectedId) ?? BANK_CUSTOMERS[0];
+  const handleActivateGCore = () => {
+    sessionStorage.setItem("gcore_popup_seen", "true");
+    router.push("/ecosystem");
+  };
 
-  const churnData = [
-    { name: "Behavior Program", value: bank.churnProgramPct, fill: GREEN },
-    { name: "Standard", value: bank.churnStandardPct, fill: SAGE },
-  ];
-  const redemptionData = [
-    {
-      name: "Generic offer",
-      value: bank.redemptionGenericPct,
-      fill: SAGE,
-    },
-    {
-      name: "Behavior + preference",
-      value: bank.redemptionBehavioralPct,
-      fill: GREEN,
-    },
-  ];
+  // Derive plain banking balance from monthly plan
+  const currentBalance = plan.income - plan.fixedObligations;
+  const availableBalance = currentBalance - plan.discretionarySpent;
+  const recentTransactions = transactions.slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-paper">
-      <header className="border-b border-line bg-navy-950 text-white">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white font-display text-sm text-navy-900">
-              M
-            </span>
-            <div>
-              <div className="font-display text-base leading-tight">Merit</div>
-              <div className="text-[11px] uppercase tracking-[0.14em] text-white/50">
-                Bank partner view
+    <div className="min-h-screen bg-slate-100 text-slate-800 pb-16">
+      {/* XYZ Bank Persistent Customer Top Bar */}
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
+          <div className="flex items-center gap-8">
+            <Link href="/bank" className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-700 font-bold text-white text-base">
+                XYZ
               </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <ConnectionStatus dark />
-            <Link
-              href="/architecture"
-              className="hidden items-center gap-1.5 rounded-full border border-white/15 px-3.5 py-1.5 text-sm text-white/80 hover:bg-white/5 sm:flex"
-            >
-              <Network size={14} />
-              Architecture
+              <span className="font-bold text-lg text-slate-900 tracking-tight">XYZ Bank</span>
             </Link>
+
+            <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
+              <Link href="/bank" className="text-blue-700 font-semibold border-b-2 border-blue-700 pb-0.5">
+                Overview
+              </Link>
+              <a href="#accounts" className="hover:text-slate-900 transition-colors">
+                Accounts
+              </a>
+              <a href="#cards" className="hover:text-slate-900 transition-colors">
+                Cards
+              </a>
+              <a href="#payments" className="hover:text-slate-900 transition-colors">
+                Payments
+              </a>
+              <a href="#offers" className="hover:text-slate-900 transition-colors">
+                Offers
+              </a>
+            </nav>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* G-Core Highlighted Nav Item */}
             <Link
               href="/ecosystem"
-              className="hidden items-center gap-1.5 rounded-full border border-white/15 px-3.5 py-1.5 text-sm text-white/80 hover:bg-white/5 sm:flex"
+              className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200 px-3.5 py-1.5 text-xs font-semibold text-blue-800 hover:bg-blue-100 transition-colors shadow-sm"
             >
-              <Globe2 size={14} />
-              G-Core Network
-            </Link>
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-sm font-semibold text-navy-900 hover:bg-white/90"
-            >
-              <ArrowLeft size={14} />
-              Customer app
+              <Sparkles size={13} className="text-blue-600 animate-pulse" />
+              G-Core
+              <span className="rounded-full bg-blue-700 px-1.5 py-0.2 text-[10px] font-bold text-white uppercase tracking-wider">
+                New
+              </span>
             </Link>
           </div>
         </div>
       </header>
 
+      {/* Main Dashboard Body */}
       <main className="mx-auto max-w-6xl px-6 py-8">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl text-ink">
-              Portfolio overview
+            <div className="text-xs uppercase tracking-wider text-slate-500 font-semibold">
+              Online Banking &bull; Personal Account
+            </div>
+            <h1 className="mt-1 text-2xl font-bold text-slate-900">
+              {greeting()}, {customer.name.split(" ")[0]}.
             </h1>
-            <p className="mt-1 text-navy-600">
-              Behavioral loyalty program performance across enrolled
-              customers.
-            </p>
           </div>
-          <Pill tone="amber">Simulated demo data</Pill>
+          <div className="inline-flex items-center gap-2 rounded-lg bg-white border border-slate-200 px-3 py-1.5 text-xs text-slate-500 font-medium shadow-sm">
+            <Shield size={14} className="text-slate-400" />
+            <span>Account Tier: <strong className="text-slate-700 font-semibold">{status.tier} Member</strong></span>
+          </div>
         </div>
 
-        <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            icon={Users}
-            label="Customers enrolled"
-            value={bank.customersEnrolled.toLocaleString("en-US")}
-            sub="18–25 segment"
-          />
-          <StatCard
-            icon={Activity}
-            label="Monthly active"
-            value={`${bank.monthlyActivePct}%`}
-            sub="engaging with the program"
-          />
-          <StatCard
-            icon={TrendingUp}
-            label="Improving savings behavior"
-            value={`+${bank.savingsImprovementPct}%`}
-            sub="vs. enrollment baseline"
-          />
-          <StatCard
-            icon={Repeat}
-            label="Behavioral reward redemption"
-            value={`${bank.redemptionBehavioralPct}%`}
-            sub="vs. 3% for generic offers"
-          />
-        </div>
-
-        <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-[280px_1fr]">
-          <Card className="h-fit p-5">
-            <SectionLabel>Select a customer</SectionLabel>
-            <div className="mt-3 space-y-2">
-              {BANK_CUSTOMERS.map((c) => (
-                <button
-                  key={c.id}
-                  onClick={() => setSelectedId(c.id)}
-                  className={`flex w-full items-center justify-between rounded-lg border px-3.5 py-2.5 text-left text-sm transition-colors ${
-                    c.id === selectedId
-                      ? "border-navy-900 bg-navy-900 text-white"
-                      : "border-line bg-white text-navy-800 hover:border-navy-500/40"
-                  }`}
-                >
-                  <span>
-                    <span className="flex items-center gap-1.5">
-                      <span className="block font-medium">{c.name}</span>
-                      <Pill
-                        tone={c.live ? "positive" : "neutral"}
-                        className={
-                          c.id === selectedId
-                            ? "border-white/20 bg-white/10 text-white"
-                            : ""
-                        }
-                      >
-                        {c.live ? "Live" : "Simulated"}
-                      </Pill>
-                    </span>
-                    <span
-                      className={`block text-xs ${
-                        c.id === selectedId ? "text-white/60" : "text-navy-500"
-                      }`}
-                    >
-                      {c.profile} · since {c.memberSince}
-                    </span>
-                  </span>
+        {/* Account Balance Card */}
+        <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
+          <div className="md:col-span-2 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <div className="text-xs font-medium text-slate-500">Everyday Checking (*4821)</div>
+                <div className="mt-1 text-3xl font-bold text-slate-900">
+                  {formatEuro(availableBalance)}
+                </div>
+                <div className="mt-1 text-xs text-slate-400">
+                  Total ledger balance: {formatEuro(currentBalance)}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100">
+                  <Send size={13} /> Transfer
                 </button>
-              ))}
-            </div>
-          </Card>
-
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <Card className="p-5">
-              <div className="flex items-center gap-2">
-                <Target size={15} className="text-navy-700" />
-                <SectionLabel>Behavioral profile — {selected.name}</SectionLabel>
-                <Pill tone={selected.live ? "positive" : "neutral"}>
-                  {selected.live ? "Live from pipeline" : "Simulated"}
-                </Pill>
+                <button className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100">
+                  <Receipt size={13} /> Pay Bill
+                </button>
               </div>
-              <div className="mt-4 space-y-3.5">
-                {selected.behavioral.map((d) => (
-                  <div key={d.label}>
-                    <div className="mb-1 flex items-center justify-between text-xs text-navy-600">
-                      <span>{d.label}</span>
-                      <span className="font-semibold text-ink">
-                        {Math.round(d.value * 100)}%
-                      </span>
+            </div>
+
+            {/* Plain Unexplained Transaction Feed */}
+            <div className="mt-5">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Recent Transactions
+                </span>
+                <span className="text-xs text-slate-400">Showing last 5</span>
+              </div>
+
+              <div className="divide-y divide-slate-100 border-t border-b border-slate-100">
+                {recentTransactions.map((txn) => {
+                  const isInflow = txn.amount > 0;
+                  return (
+                    <div
+                      key={txn.id}
+                      className="flex items-center justify-between py-3 px-1 text-sm hover:bg-slate-50 transition-colors"
+                    >
+                      <div>
+                        <div className="font-medium text-slate-900">{txn.merchant}</div>
+                        <div className="text-xs text-slate-400">
+                          {new Date(txn.date).toLocaleDateString("en-GB", {
+                            day: "2-digit",
+                            month: "short",
+                          })}
+                        </div>
+                      </div>
+                      <div
+                        className={`font-semibold font-mono text-sm ${
+                          isInflow ? "text-emerald-600" : "text-slate-900"
+                        }`}
+                      >
+                        {isInflow ? `+${formatEuro(txn.amount)}` : formatEuro(txn.amount)}
+                      </div>
                     </div>
-                    <ProgressBar value={d.value} tone="navy" />
-                  </div>
-                ))}
+                  );
+                })}
               </div>
-            </Card>
-
-            <Card className="overflow-hidden p-5">
-              <div className="flex items-center gap-2">
-                <Sparkles size={15} className="text-amber-500" />
-                <SectionLabel>Recommended campaign</SectionLabel>
-              </div>
-              <div className="mt-4 rounded-xl border border-amber-100 bg-gradient-to-br from-amber-50 to-white p-4">
-                <div className="flex items-baseline justify-between">
-                  <div className="font-display text-lg text-ink">
-                    {selected.campaign.merchant}
-                  </div>
-                  <div className="font-display text-lg text-amber-600">
-                    {selected.campaign.title}
-                  </div>
-                </div>
-                <p className="mt-2 text-sm text-navy-600">
-                  {selected.campaign.reason}
-                </p>
-              </div>
-              <div className="mt-4 flex items-center justify-between rounded-xl border border-line bg-cream/60 px-4 py-3">
-                <span className="text-xs font-semibold uppercase tracking-wide text-navy-600">
-                  Expected objective
-                </span>
-                <span className="text-sm font-semibold text-ink">
-                  {selected.campaign.objective}
-                </span>
-              </div>
-            </Card>
-          </div>
-        </div>
-
-        <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
-          <Card className="p-6">
-            <SectionLabel>12-month churn</SectionLabel>
-            <p className="mt-1 text-sm text-navy-500">
-              Program participants vs. standard customers.
-            </p>
-            <div className="mt-4 h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={churnData} layout="vertical" margin={{ left: 8, right: 24 }}>
-                  <CartesianGrid horizontal={false} stroke="#e6e2d8" />
-                  <XAxis
-                    type="number"
-                    domain={[0, 16]}
-                    tickFormatter={(v) => `${v}%`}
-                    tick={{ fontSize: 12, fill: "#334469" }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    width={130}
-                    tick={{ fontSize: 12, fill: "#131c33" }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip
-                    cursor={{ fill: "rgba(19,28,51,0.04)" }}
-                    formatter={(v: number) => [`${v}%`, "Churn"]}
-                  />
-                  <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={28}>
-                    {churnData.map((d) => (
-                      <Cell key={d.name} fill={d.fill} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <SectionLabel>Reward redemption rate</SectionLabel>
-            <p className="mt-1 text-sm text-navy-500">
-              Generic offers vs. personalized behavioral rewards.
-            </p>
-            <div className="mt-4 h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={redemptionData} layout="vertical" margin={{ left: 8, right: 24 }}>
-                  <CartesianGrid horizontal={false} stroke="#e6e2d8" />
-                  <XAxis
-                    type="number"
-                    domain={[0, 22]}
-                    tickFormatter={(v) => `${v}%`}
-                    tick={{ fontSize: 12, fill: "#334469" }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    width={150}
-                    tick={{ fontSize: 12, fill: "#131c33" }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip
-                    cursor={{ fill: "rgba(19,28,51,0.04)" }}
-                    formatter={(v: number) => [`${v}%`, "Redemption"]}
-                  />
-                  <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={28}>
-                    {redemptionData.map((d) => (
-                      <Cell key={d.name} fill={d.fill} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-        </div>
-
-        <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-3">
-          <Card className="p-6 lg:col-span-1">
-            <div className="flex items-center gap-2">
-              <GraduationCap size={16} className="text-navy-700" />
-              <SectionLabel>Customer segment</SectionLabel>
-            </div>
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              <Pill>18–25</Pill>
-              <Pill>Students</Pill>
-              <Pill>First-job professionals</Pill>
-            </div>
-            <p className="mt-4 text-sm text-navy-600">
-              Early-relationship customers with limited financial history —
-              acquired now, retained through salary, savings, credit and
-              lending products later.
-            </p>
-          </Card>
-
-          <Card className="p-6 lg:col-span-2">
-            <SectionLabel>Live engagement feed</SectionLabel>
-            <p className="mt-1 text-sm text-navy-500">
-              Updates as customers complete monthly targets.
-            </p>
-            <div className="mt-4 space-y-3">
-              {bank.engagementFeed.map((e) => (
-                <div
-                  key={e.id}
-                  className="flex items-center justify-between gap-3 border-b border-line pb-3 text-sm last:border-b-0 last:pb-0"
-                >
-                  <div>
-                    <div className="font-medium text-ink">{e.label}</div>
-                    <div className="text-navy-500">{e.detail}</div>
-                  </div>
-                  <div className="shrink-0 text-xs text-navy-400">
-                    {e.timestamp}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </div>
-
-        <Card className="mt-6 p-6">
-          <SectionLabel>Why this matters</SectionLabel>
-          <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {["Retention", "Engagement", "Financial wellness", "Customer lifetime value"].map(
-              (label) => (
-                <div
-                  key={label}
-                  className="rounded-xl border border-line bg-cream/60 px-4 py-3 text-center text-sm font-medium text-navy-700"
-                >
-                  {label}
-                </div>
-              )
-            )}
-          </div>
-        </Card>
-
-        <Link
-          href="/architecture"
-          className="mt-6 flex items-center justify-between rounded-xl2 border border-line bg-navy-900 px-6 py-5 text-white transition-colors hover:bg-navy-800"
-        >
-          <div>
-            <div className="font-display text-lg">
-              See how customer data stays with the bank
-            </div>
-            <div className="mt-1 text-sm text-white/70">
-              Raw transactions never leave your infrastructure — only minimal
-              behavioral signals are shared.
             </div>
           </div>
-          <Network size={22} className="shrink-0 text-white/70" />
-        </Link>
+
+          {/* Sidebar Quick Services */}
+          <div className="space-y-4">
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+                Quick Actions
+              </div>
+              <div className="space-y-2 text-xs">
+                <a href="#statements" className="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium">
+                  <span>Download E-Statement</span>
+                  <ArrowRight size={14} className="text-slate-400" />
+                </a>
+                <a href="#cards" className="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium">
+                  <span>Manage Debit Card</span>
+                  <CreditCard size={14} className="text-slate-400" />
+                </a>
+                <a href="#support" className="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium">
+                  <span>Help &amp; Support</span>
+                  <HelpCircle size={14} className="text-slate-400" />
+                </a>
+              </div>
+            </div>
+
+            {/* G-Core Network Promotion Card */}
+            <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-blue-800">
+                <Sparkles size={14} className="text-blue-600" />
+                G-Core Behavioral Loyalty
+              </div>
+              <h3 className="mt-2 font-bold text-sm text-slate-900">
+                Turn healthy habits into network status.
+              </h3>
+              <p className="mt-1 text-xs text-slate-600 leading-relaxed">
+                Connect your XYZ Bank account to G-Core to earn cross-bank rewards and portable status.
+              </p>
+              <button
+                onClick={handleActivateGCore}
+                className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg bg-blue-700 py-2 text-xs font-semibold text-white shadow hover:bg-blue-800 transition-colors"
+              >
+                Explore G-Core Ecosystem <ArrowRight size={13} />
+              </button>
+            </div>
+          </div>
+        </div>
       </main>
+
+      {/* Campaign Popup Modal (Appears after ~4.5s) */}
+      {showPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
+            <button
+              onClick={handleDismissPopup}
+              className="absolute right-4 top-4 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+              <Sparkles size={24} />
+            </div>
+
+            <div className="mt-4">
+              <span className="inline-block rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-blue-700 border border-blue-200">
+                New Network Partner Feature
+              </span>
+              <h2 className="mt-2 text-xl font-bold text-slate-900">
+                Turn your financial habits into rewards.
+              </h2>
+              <p className="mt-2 text-xs text-slate-600 leading-relaxed">
+                Set personalized goals, build your G-Status and unlock benefits based on how you manage your money &mdash; not simply how much you spend.
+              </p>
+            </div>
+
+            <div className="mt-6 flex items-center gap-3">
+              <button
+                onClick={handleActivateGCore}
+                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-blue-700 py-2.5 text-xs font-bold text-white shadow hover:bg-blue-800 transition-colors"
+              >
+                Activate G-Core <ArrowRight size={14} />
+              </button>
+              <button
+                onClick={handleDismissPopup}
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+              >
+                Not now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
