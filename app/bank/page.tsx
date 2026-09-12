@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  Search,
   Sparkles,
   ArrowRight,
   X,
@@ -12,9 +13,17 @@ import {
   Receipt,
   Shield,
   HelpCircle,
+  Building2,
+  ArrowRightLeft,
+  Repeat,
+  CheckSquare,
+  ChevronLeft,
+  ChevronRight,
+  Lock,
 } from "lucide-react";
 import { useDemo } from "@/lib/demo-context";
 import { formatEuro } from "@/lib/utils";
+import { BankSidebar } from "@/components/bank/BankSidebar";
 
 function greeting() {
   const hour = new Date().getHours();
@@ -23,10 +32,33 @@ function greeting() {
   return "Good evening";
 }
 
+const CAROUSEL_OFFERS = [
+  {
+    title: "XYZ High-Yield Savings Account",
+    desc: "Earn up to 3.85% APY with no monthly maintenance fees or minimum balance requirements.",
+    badge: "Special Savings Rate",
+    cta: "Explore Savings Options",
+  },
+  {
+    title: "Personal Fixed-Rate Loan",
+    desc: "Borrow up to €15,000 with flexible payback terms and rate discounts for automated payments.",
+    badge: "Low Rates Available",
+    cta: "Calculate Monthly Rate",
+  },
+  {
+    title: "XYZ World Elite Platinum",
+    desc: "Enjoy zero foreign transaction fees, complimentary airport lounge passes, and 24/7 concierge.",
+    badge: "Premium Banking",
+    cta: "View Card Eligibility",
+  },
+];
+
 export default function PlainXYZBankDashboard() {
   const router = useRouter();
   const { customer, plan, transactions, status } = useDemo();
   const [showPopup, setShowPopup] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const txnSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const popupDismissed = sessionStorage.getItem("gcore_popup_seen");
@@ -48,207 +80,349 @@ export default function PlainXYZBankDashboard() {
     router.push("/ecosystem");
   };
 
+  const scrollToTransactions = () => {
+    txnSectionRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % CAROUSEL_OFFERS.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + CAROUSEL_OFFERS.length) % CAROUSEL_OFFERS.length);
+  };
+
   // Derive plain banking balance from monthly plan
   const currentBalance = plan.income - plan.fixedObligations;
   const availableBalance = currentBalance - plan.discretionarySpent;
   const recentTransactions = transactions.slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-800 pb-16">
-      {/* XYZ Bank Persistent Customer Top Bar */}
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
-          <div className="flex items-center gap-8">
-            <Link href="/bank" className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-700 font-bold text-white text-base">
-                XYZ
-              </div>
-              <span className="font-bold text-lg text-slate-900 tracking-tight">XYZ Bank</span>
-            </Link>
+    <div className="flex min-h-screen bg-xyz-surface text-xyz-ink">
+      {/* Fixed Left Sidebar */}
+      <BankSidebar onNavigateToTransactions={scrollToTransactions} />
 
-            <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
-              <Link href="/bank" className="text-blue-700 font-semibold border-b-2 border-blue-700 pb-0.5">
-                Overview
-              </Link>
-              <a href="#accounts" className="hover:text-slate-900 transition-colors">
-                Accounts
-              </a>
-              <a href="#cards" className="hover:text-slate-900 transition-colors">
-                Cards
-              </a>
-              <a href="#payments" className="hover:text-slate-900 transition-colors">
-                Payments
-              </a>
-              <a href="#offers" className="hover:text-slate-900 transition-colors">
-                Offers
-              </a>
-            </nav>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* G-Core Highlighted Nav Item */}
-            <Link
-              href="/ecosystem"
-              className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200 px-3.5 py-1.5 text-xs font-semibold text-blue-800 hover:bg-blue-100 transition-colors shadow-sm"
-            >
-              <Sparkles size={13} className="text-blue-600 animate-pulse" />
-              G-Core
-              <span className="rounded-full bg-blue-700 px-1.5 py-0.2 text-[10px] font-bold text-white uppercase tracking-wider">
-                New
-              </span>
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Dashboard Body */}
-      <main className="mx-auto max-w-6xl px-6 py-8">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <div className="text-xs uppercase tracking-wider text-slate-500 font-semibold">
-              Online Banking &bull; Personal Account
-            </div>
-            <h1 className="mt-1 text-2xl font-bold text-slate-900">
-              {greeting()}, {customer.name.split(" ")[0]}.
-            </h1>
-          </div>
-          <div className="inline-flex items-center gap-2 rounded-lg bg-white border border-slate-200 px-3 py-1.5 text-xs text-slate-500 font-medium shadow-sm">
-            <Shield size={14} className="text-slate-400" />
-            <span>Account Tier: <strong className="text-slate-700 font-semibold">{status.tier} Member</strong></span>
-          </div>
-        </div>
-
-        {/* Account Balance Card */}
-        <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
-          <div className="md:col-span-2 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <div>
-                <div className="text-xs font-medium text-slate-500">Everyday Checking (*4821)</div>
-                <div className="mt-1 text-3xl font-bold text-slate-900">
-                  {formatEuro(availableBalance)}
-                </div>
-                <div className="mt-1 text-xs text-slate-400">
-                  Total ledger balance: {formatEuro(currentBalance)}
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <button className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100">
-                  <Send size={13} /> Transfer
-                </button>
-                <button className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100">
-                  <Receipt size={13} /> Pay Bill
-                </button>
-              </div>
+      {/* Main Content Area */}
+      <div className="flex min-h-screen flex-1 flex-col min-w-0">
+        {/* Top Header / Search Row */}
+        <header className="border-b border-xyz-border bg-white px-6 py-3.5 shadow-2xs">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
+            {/* Search Input */}
+            <div className="relative flex-1 max-w-md">
+              <Search
+                size={16}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xyz-ink-soft/50"
+              />
+              <input
+                type="text"
+                readOnly
+                placeholder="Search XYZ Bank Online..."
+                className="w-full rounded-lg border border-xyz-border bg-xyz-surface pl-10 pr-4 py-2 text-xs text-xyz-ink placeholder:text-xyz-ink-soft/60 focus:outline-none focus:border-xyz-accent cursor-pointer"
+              />
             </div>
 
-            {/* Plain Unexplained Transaction Feed */}
-            <div className="mt-5">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Recent Transactions
+            {/* Account Tier Badge & G-Core Quick Link */}
+            <div className="flex items-center gap-3">
+              <div className="hidden md:inline-flex items-center gap-1.5 rounded-full border border-xyz-border bg-xyz-surface px-3 py-1 text-xs font-medium text-xyz-ink-soft">
+                <Shield size={13} className="text-xyz-accent" />
+                <span>
+                  Tier: <strong className="text-xyz-ink font-semibold">{status.tier} Member</strong>
                 </span>
-                <span className="text-xs text-slate-400">Showing last 5</span>
               </div>
 
-              <div className="divide-y divide-slate-100 border-t border-b border-slate-100">
-                {recentTransactions.map((txn) => {
-                  const isInflow = txn.amount > 0;
-                  return (
-                    <div
-                      key={txn.id}
-                      className="flex items-center justify-between py-3 px-1 text-sm hover:bg-slate-50 transition-colors"
-                    >
-                      <div>
-                        <div className="font-medium text-slate-900">{txn.merchant}</div>
-                        <div className="text-xs text-slate-400">
-                          {new Date(txn.date).toLocaleDateString("en-GB", {
-                            day: "2-digit",
-                            month: "short",
-                          })}
+              <Link
+                href="/ecosystem"
+                className="inline-flex items-center gap-1.5 rounded-full border border-xyz-accent/30 bg-xyz-accent-soft px-3.5 py-1.5 text-xs font-semibold text-xyz-primary hover:bg-xyz-accent/15 transition-colors shadow-2xs"
+              >
+                <Sparkles size={13} className="text-amber-500 animate-pulse" />
+                G-Core
+                <span className="rounded bg-xyz-primary px-1.5 py-0.2 text-[9px] font-bold text-white uppercase tracking-wider">
+                  New
+                </span>
+              </Link>
+            </div>
+          </div>
+        </header>
+
+        {/* Dashboard Body */}
+        <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8 space-y-8">
+          {/* Welcome Header */}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div className="text-xs uppercase tracking-wider text-xyz-ink-soft font-semibold">
+                Online Banking &bull; Personal Account
+              </div>
+              <h1 className="mt-1 text-2xl font-bold text-xyz-ink">
+                {greeting()}, {customer.name.split(" ")[0]}.
+              </h1>
+            </div>
+            <div className="text-xs text-xyz-ink-soft font-medium flex items-center gap-1.5">
+              <Lock size={13} className="text-emerald-600" />
+              <span>Last login: Today, 09:42 AM</span>
+            </div>
+          </div>
+
+          {/* Accounts & Cards Grid */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {/* My Accounts Card */}
+            <div id="accounts" className="rounded-xl border border-xyz-border bg-xyz-card p-6 shadow-2xs">
+              <div className="flex items-center justify-between border-b border-xyz-border pb-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-xyz-accent-soft px-2.5 py-0.5 text-[11px] font-semibold text-xyz-primary border border-xyz-accent/20">
+                      Checking Account
+                    </span>
+                    <span className="text-xs font-mono text-xyz-ink-soft">
+                      *4821
+                    </span>
+                  </div>
+                  <div className="mt-3 text-3xl font-bold text-xyz-ink">
+                    {formatEuro(availableBalance)}
+                  </div>
+                  <div className="mt-1 text-xs text-xyz-ink-soft">
+                    Total ledger balance: {formatEuro(currentBalance)}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() => {}}
+                    className="flex items-center justify-center gap-1.5 rounded-lg border border-xyz-border bg-xyz-surface px-3 py-1.5 text-xs font-semibold text-xyz-ink hover:bg-xyz-accent-soft hover:text-xyz-primary transition-colors"
+                  >
+                    All Accounts
+                  </button>
+                  <button
+                    onClick={scrollToTransactions}
+                    className="flex items-center justify-center gap-1.5 rounded-lg bg-xyz-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-xyz-primary-dark transition-colors shadow-2xs"
+                  >
+                    Account Activity
+                  </button>
+                </div>
+              </div>
+
+              {/* Transactions List */}
+              <div ref={txnSectionRef} id="transactions" className="mt-5">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-xyz-ink-soft">
+                    Recent Transactions
+                  </span>
+                  <span className="text-xs text-xyz-ink-soft/70">Showing last 5</span>
+                </div>
+
+                <div className="divide-y divide-xyz-border/60 border-t border-b border-xyz-border">
+                  {recentTransactions.map((txn) => {
+                    const isInflow = txn.amount > 0;
+                    return (
+                      <div
+                        key={txn.id}
+                        className="flex items-center justify-between py-3 px-1 text-sm hover:bg-xyz-surface transition-colors"
+                      >
+                        <div>
+                          <div className="font-medium text-xyz-ink">{txn.merchant}</div>
+                          <div className="text-xs text-xyz-ink-soft">
+                            {new Date(txn.date).toLocaleDateString("en-GB", {
+                              day: "2-digit",
+                              month: "short",
+                            })}
+                          </div>
+                        </div>
+                        <div
+                          className={`font-semibold font-mono text-sm ${
+                            isInflow ? "text-emerald-600" : "text-xyz-ink"
+                          }`}
+                        >
+                          {isInflow ? `+${formatEuro(txn.amount)}` : formatEuro(txn.amount)}
                         </div>
                       </div>
-                      <div
-                        className={`font-semibold font-mono text-sm ${
-                          isInflow ? "text-emerald-600" : "text-slate-900"
-                        }`}
-                      >
-                        {isInflow ? `+${formatEuro(txn.amount)}` : formatEuro(txn.amount)}
-                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* My Credit Cards Card */}
+            <div id="cards" className="flex flex-col justify-between rounded-xl border border-xyz-border bg-xyz-card p-6 shadow-2xs">
+              <div>
+                <div className="flex items-center justify-between border-b border-xyz-border pb-4">
+                  <h2 className="font-bold text-lg text-xyz-ink">My Credit Cards</h2>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">
+                    Standard Offers
+                  </span>
+                </div>
+
+                <div className="mt-5">
+                  <p className="text-xs text-xyz-ink-soft leading-relaxed">
+                    Boost your purchasing power with an XYZ Bank Credit Card. Enjoy competitive APRs, flexible repayment schedules, and worldwide acceptance.
+                  </p>
+
+                  {/* Decorative Card Graphic */}
+                  <div className="mt-5 relative overflow-hidden rounded-xl bg-gradient-to-br from-xyz-primary-dark via-xyz-primary to-xyz-accent p-5 text-white shadow-md">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-xs uppercase tracking-wider">
+                        XYZ Bank Platinum
+                      </span>
+                      <CreditCard size={20} className="text-xyz-accent-soft" />
                     </div>
-                  );
-                })}
+
+                    <div className="mt-6 flex items-center gap-2">
+                      <div className="h-6 w-8 rounded bg-amber-400/80 border border-amber-300" />
+                      <div className="h-4 w-4 rounded-full bg-white/20" />
+                    </div>
+
+                    <div className="mt-4 font-mono text-sm tracking-widest text-white/90">
+                      •••• •••• •••• 8912
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-between text-[11px] text-xyz-accent-soft">
+                      <span>VALTHRU 12/28</span>
+                      <span className="font-semibold uppercase tracking-wider">VISA</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <button
+                  onClick={() => {}}
+                  className="w-full flex items-center justify-center gap-2 rounded-lg border border-xyz-accent bg-xyz-accent-soft py-2.5 text-xs font-semibold text-xyz-primary hover:bg-xyz-accent hover:text-white transition-colors"
+                >
+                  Apply for a Card <ArrowRight size={14} />
+                </button>
               </div>
             </div>
           </div>
 
-          {/* Sidebar Quick Services */}
-          <div className="space-y-4">
-            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
-                Quick Actions
-              </div>
-              <div className="space-y-2 text-xs">
-                <a href="#statements" className="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium">
-                  <span>Download E-Statement</span>
-                  <ArrowRight size={14} className="text-slate-400" />
-                </a>
-                <a href="#cards" className="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium">
-                  <span>Manage Debit Card</span>
-                  <CreditCard size={14} className="text-slate-400" />
-                </a>
-                <a href="#support" className="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium">
-                  <span>Help &amp; Support</span>
-                  <HelpCircle size={14} className="text-slate-400" />
-                </a>
+          {/* Shortcuts Row */}
+          <div className="space-y-3">
+            <div className="text-xs font-bold uppercase tracking-wider text-xyz-ink-soft">
+              Quick Shortcuts
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+              {[
+                { label: "My Assets", icon: Building2 },
+                { label: "Recent Transactions", icon: Receipt, action: scrollToTransactions },
+                { label: "Money Transfer", icon: Send },
+                { label: "Between My Accounts", icon: Repeat },
+                { label: "Registered Transactions", icon: CheckSquare },
+              ].map((shortcut) => {
+                const Icon = shortcut.icon;
+                return (
+                  <button
+                    key={shortcut.label}
+                    onClick={shortcut.action || (() => {})}
+                    className="flex flex-col items-center justify-center rounded-xl border border-xyz-border bg-xyz-card p-4 text-center hover:border-xyz-accent hover:bg-xyz-accent-soft/50 transition-all shadow-2xs group"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-xyz-surface text-xyz-primary group-hover:bg-xyz-primary group-hover:text-white transition-colors">
+                      <Icon size={18} />
+                    </div>
+                    <span className="mt-2 text-xs font-semibold text-xyz-ink group-hover:text-xyz-primary transition-colors">
+                      {shortcut.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Promo Carousel */}
+          <div className="rounded-xl border border-xyz-border bg-xyz-card p-6 shadow-2xs">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-xs font-bold uppercase tracking-wider text-xyz-ink-soft">
+                Featured Bank Offers
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={prevSlide}
+                  className="rounded-lg border border-xyz-border p-1.5 text-xyz-ink-soft hover:bg-xyz-surface hover:text-xyz-ink"
+                  aria-label="Previous Offer"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button
+                  onClick={nextSlide}
+                  className="rounded-lg border border-xyz-border p-1.5 text-xyz-ink-soft hover:bg-xyz-surface hover:text-xyz-ink"
+                  aria-label="Next Offer"
+                >
+                  <ChevronRight size={16} />
+                </button>
               </div>
             </div>
 
-            {/* G-Core Network Promotion Card */}
-            <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-blue-800">
-                <Sparkles size={14} className="text-blue-600" />
-                G-Core Behavioral Loyalty
+            <div className="relative min-h-[100px] rounded-lg border border-xyz-border bg-xyz-surface p-5 flex flex-col justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="rounded bg-xyz-primary px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                  {CAROUSEL_OFFERS[currentSlide].badge}
+                </span>
+                <span className="text-xs text-xyz-ink-soft/70">
+                  Offer {currentSlide + 1} of {CAROUSEL_OFFERS.length}
+                </span>
               </div>
-              <h3 className="mt-2 font-bold text-sm text-slate-900">
-                Turn healthy habits into network status.
-              </h3>
-              <p className="mt-1 text-xs text-slate-600 leading-relaxed">
-                Connect your XYZ Bank account to G-Core to earn cross-bank rewards and portable status.
-              </p>
-              <button
-                onClick={handleActivateGCore}
-                className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg bg-blue-700 py-2 text-xs font-semibold text-white shadow hover:bg-blue-800 transition-colors"
-              >
-                Explore G-Core Ecosystem <ArrowRight size={13} />
-              </button>
+
+              <div className="mt-3">
+                <h3 className="font-bold text-base text-xyz-ink">
+                  {CAROUSEL_OFFERS[currentSlide].title}
+                </h3>
+                <p className="mt-1 text-xs text-xyz-ink-soft max-w-3xl">
+                  {CAROUSEL_OFFERS[currentSlide].desc}
+                </p>
+              </div>
+
+              <div className="mt-4 flex items-center justify-between">
+                <button
+                  onClick={() => {}}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-xyz-primary hover:text-xyz-primary-dark"
+                >
+                  {CAROUSEL_OFFERS[currentSlide].cta} <ArrowRight size={13} />
+                </button>
+
+                {/* Dot Indicators */}
+                <div className="flex items-center gap-1.5">
+                  {CAROUSEL_OFFERS.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentSlide(idx)}
+                      className={`h-2 rounded-full transition-all ${
+                        currentSlide === idx ? "w-6 bg-xyz-primary" : "w-2 bg-xyz-border"
+                      }`}
+                      aria-label={`Go to slide ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </main>
+        </main>
+
+        {/* Footer */}
+        <footer className="border-t border-xyz-border bg-white px-6 py-4 text-center text-xs text-xyz-ink-soft/70">
+          &copy; 2026 XYZ Financial Corporation. Member FDIC. Equal Housing Lender.
+        </footer>
+      </div>
 
       {/* Campaign Popup Modal (Appears after ~4.5s) */}
       {showPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-xyz-ink/50 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="relative w-full max-w-md rounded-2xl border border-xyz-border bg-white p-6 shadow-2xl">
             <button
               onClick={handleDismissPopup}
-              className="absolute right-4 top-4 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              className="absolute right-4 top-4 rounded-full p-1 text-xyz-ink-soft/60 hover:bg-xyz-surface hover:text-xyz-ink"
             >
               <X size={18} />
             </button>
 
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
-              <Sparkles size={24} />
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-xyz-accent-soft text-xyz-primary">
+              <Sparkles size={24} className="text-amber-500" />
             </div>
 
             <div className="mt-4">
-              <span className="inline-block rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-blue-700 border border-blue-200">
+              <span className="inline-block rounded-full bg-xyz-accent-soft px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-xyz-primary border border-xyz-accent/30">
                 New Network Partner Feature
               </span>
-              <h2 className="mt-2 text-xl font-bold text-slate-900">
+              <h2 className="mt-2 text-xl font-bold text-xyz-ink">
                 Turn your financial habits into rewards.
               </h2>
-              <p className="mt-2 text-xs text-slate-600 leading-relaxed">
+              <p className="mt-2 text-xs text-xyz-ink-soft leading-relaxed">
                 Set personalized goals, build your G-Status and unlock benefits based on how you manage your money &mdash; not simply how much you spend.
               </p>
             </div>
@@ -256,13 +430,13 @@ export default function PlainXYZBankDashboard() {
             <div className="mt-6 flex items-center gap-3">
               <button
                 onClick={handleActivateGCore}
-                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-blue-700 py-2.5 text-xs font-bold text-white shadow hover:bg-blue-800 transition-colors"
+                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-xyz-primary py-2.5 text-xs font-bold text-white shadow hover:bg-xyz-primary-dark transition-colors"
               >
                 Activate G-Core <ArrowRight size={14} />
               </button>
               <button
                 onClick={handleDismissPopup}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+                className="rounded-xl border border-xyz-border bg-white px-4 py-2.5 text-xs font-semibold text-xyz-ink-soft hover:bg-xyz-surface transition-colors"
               >
                 Not now
               </button>

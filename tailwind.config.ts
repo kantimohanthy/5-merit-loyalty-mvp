@@ -35,6 +35,19 @@ const config: Config = {
           500: "#c2822b",
           600: "#a56a1f",
         },
+        xyz: {
+          primary: "#0B3D91",
+          "primary-dark": "#082C6B",
+          accent: "#2E7DD7",
+          "accent-soft": "#EAF2FC",
+          surface: "#F4F6F9",
+          card: "#FFFFFF",
+          border: "#DCE3ED",
+          ink: "#101828",
+          "ink-soft": "#475467",
+          "sidebar-bg": "#10233F",
+          "sidebar-ink": "#E7ECF5",
+        },
       },
       fontFamily: {
         sans: [
