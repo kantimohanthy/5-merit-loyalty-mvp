@@ -1,0 +1,228 @@
+import {
+  BankMetrics,
+  Customer,
+  MonthlyPlan,
+  Reward,
+  StatusProfile,
+  Transaction,
+} from "./types";
+
+export const CUSTOMER: Customer = {
+  name: "Alex Morgan",
+  age: 22,
+  profile: "University student / part-time worker",
+  memberSince: "Mar 2025",
+};
+
+export const INITIAL_PLAN: MonthlyPlan = {
+  income: 1000,
+  fixedObligations: 500,
+  discretionaryTarget: 360,
+  savingsTarget: 140,
+  discretionarySpent: 190,
+  savingsSaved: 90,
+  status: "ON_TRACK",
+};
+
+export const INITIAL_TRANSACTIONS: Transaction[] = [
+  {
+    id: "t1",
+    date: "2026-09-01",
+    merchant: "Novi Grad Apartments",
+    amount: -500,
+    category: "Rent",
+    classification: "essential",
+    confidence: 0.96,
+    alternates: [
+      { category: "Rent", confidence: 0.96 },
+      { category: "Other", confidence: 0.04 },
+    ],
+    confirmed: true,
+  },
+  {
+    id: "t2",
+    date: "2026-09-02",
+    merchant: "Konzum Grocery",
+    amount: -42,
+    category: "Groceries",
+    classification: "essential",
+    confidence: 0.93,
+    alternates: [
+      { category: "Groceries", confidence: 0.93 },
+      { category: "Shopping", confidence: 0.07 },
+    ],
+    confirmed: true,
+  },
+  {
+    id: "t3",
+    date: "2026-09-03",
+    merchant: "Sarajevo Metro",
+    amount: -25,
+    category: "Transport",
+    classification: "essential",
+    confidence: 0.98,
+    alternates: [{ category: "Transport", confidence: 0.98 }],
+    confirmed: true,
+  },
+  {
+    id: "t4",
+    date: "2026-09-04",
+    merchant: "University Bookshop",
+    amount: -38,
+    category: "Education",
+    classification: "essential",
+    confidence: 0.91,
+    alternates: [
+      { category: "Education", confidence: 0.91 },
+      { category: "Shopping", confidence: 0.09 },
+    ],
+    confirmed: true,
+  },
+  {
+    id: "t5",
+    date: "2026-09-05",
+    merchant: "Zrno Coffee",
+    amount: -6,
+    category: "Entertainment",
+    classification: "discretionary",
+    confidence: 0.88,
+    alternates: [
+      { category: "Entertainment", confidence: 0.88 },
+      { category: "Groceries", confidence: 0.12 },
+    ],
+    confirmed: true,
+  },
+  {
+    id: "t6",
+    date: "2026-09-06",
+    merchant: "Adidas Baščaršija",
+    amount: -59,
+    category: "Shopping",
+    classification: "discretionary",
+    confidence: 0.9,
+    alternates: [
+      { category: "Shopping", confidence: 0.9 },
+      { category: "Entertainment", confidence: 0.1 },
+    ],
+    confirmed: true,
+  },
+  {
+    id: "t7",
+    date: "2026-09-07",
+    merchant: "Netflix",
+    amount: -12,
+    category: "Subscriptions",
+    classification: "discretionary",
+    confidence: 0.99,
+    alternates: [{ category: "Subscriptions", confidence: 0.99 }],
+    confirmed: true,
+  },
+  {
+    id: "t8",
+    date: "2026-09-07",
+    merchant: "Family transfer / Rent",
+    amount: -700,
+    category: "Rent",
+    classification: "essential",
+    confidence: 0.91,
+    alternates: [
+      { category: "Rent", confidence: 0.91 },
+      { category: "Other", confidence: 0.05 },
+      { category: "Education", confidence: 0.04 },
+    ],
+    confirmed: false,
+  },
+  {
+    id: "t9",
+    date: "2026-09-08",
+    merchant: "Savings Transfer",
+    amount: 90,
+    category: "Savings",
+    classification: "savings",
+    confidence: 1,
+    alternates: [{ category: "Savings", confidence: 1 }],
+    confirmed: true,
+  },
+];
+
+export const INITIAL_REWARDS: Reward[] = [
+  {
+    id: "r1",
+    merchant: "Adidas",
+    title: "20% OFF",
+    category: "Shopping",
+    status: "locked",
+    requirement: "Reach your monthly target to unlock",
+    progress: 0.72,
+  },
+  {
+    id: "r2",
+    merchant: "Wanderlust Travel",
+    title: "€40 travel credit",
+    category: "Travel",
+    status: "locked",
+    requirement: "3-month streak + savings goal met",
+    progress: 0.4,
+  },
+  {
+    id: "r3",
+    merchant: "Ćevabdžinica Petica",
+    title: "Free side with any meal",
+    category: "Entertainment",
+    status: "locked",
+    requirement: "Stay within discretionary target",
+    progress: 0.72,
+  },
+  {
+    id: "r4",
+    merchant: "Zrno Coffee",
+    title: "Buy 4, get 1 free",
+    category: "Entertainment",
+    status: "unlocked",
+    reason: "Unlocked last month for consistent budget tracking.",
+  },
+];
+
+export const INITIAL_STATUS: StatusProfile = {
+  tier: "PLUS",
+  verifiedHistoryMonths: 18,
+  currentStreak: 5,
+  points: 2500,
+  dimensions: [
+    { label: "Budget consistency", value: "STRONG", score: 0.88 },
+    { label: "Savings consistency", value: "STRONG", score: 0.82 },
+    { label: "Payment regularity", value: "STRONG", score: 0.94 },
+    { label: "Liquidity stability", value: "MODERATE", score: 0.6 },
+    { label: "Goal completion", value: "MODERATE", score: 0.64 },
+  ],
+};
+
+export const INITIAL_BANK_METRICS: BankMetrics = {
+  customersEnrolled: 120000,
+  monthlyActivePct: 74,
+  savingsImprovementPct: 21,
+  churnProgramPct: 7.2,
+  churnStandardPct: 13.6,
+  redemptionGenericPct: 3,
+  redemptionBehavioralPct: 19,
+  engagementFeed: [
+    {
+      id: "e1",
+      label: "Segment cohort refreshed",
+      detail: "18–25 segment · students & first-job professionals",
+      timestamp: "09:14",
+    },
+    {
+      id: "e2",
+      label: "Behavioral reward redeemed",
+      detail: "Customer #58213 · Adidas 20% off",
+      timestamp: "09:02",
+    },
+    {
+      id: "e3",
+      label: "Monthly target achieved",
+      detail: "Customer #41090 · 4-month streak",
+      timestamp: "08:47",
+    },
+  ],
+};
