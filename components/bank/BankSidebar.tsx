@@ -17,6 +17,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useDemo } from "@/lib/demo-context";
+import { cn } from "@/lib/utils";
 
 function getGreetingTime() {
   const hour = new Date().getHours();
@@ -27,12 +28,22 @@ function getGreetingTime() {
 
 interface BankSidebarProps {
   onNavigateToTransactions?: () => void;
+  mobileOpen?: boolean;
+  setMobileOpen?: (open: boolean) => void;
 }
 
-export function BankSidebar({ onNavigateToTransactions }: BankSidebarProps) {
+export function BankSidebar({
+  onNavigateToTransactions,
+  mobileOpen: externalMobileOpen,
+  setMobileOpen: externalSetMobileOpen,
+}: BankSidebarProps) {
   const router = useRouter();
   const { customer, reset } = useDemo();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [internalMobileOpen, setInternalMobileOpen] = useState(false);
+
+  const mobileOpen =
+    externalMobileOpen !== undefined ? externalMobileOpen : internalMobileOpen;
+  const setMobileOpen = externalSetMobileOpen || setInternalMobileOpen;
 
   const greeting = getGreetingTime();
   const customerName = customer?.name || "Customer";
@@ -63,24 +74,35 @@ export function BankSidebar({ onNavigateToTransactions }: BankSidebarProps) {
 
   return (
     <>
-      {/* Mobile Top Header */}
-      <div className="flex items-center justify-between border-b border-xyz-border bg-xyz-sidebar-bg px-4 py-3 lg:hidden text-xyz-sidebar-ink z-40">
+      {/* Mobile Top Header (< lg) */}
+      <div className="flex items-center justify-between border-b border-xyz-border bg-xyz-sidebar-bg px-4 py-3 lg:hidden text-white z-30 w-full shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded bg-xyz-accent font-bold text-white text-xs">
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="rounded p-1 text-xyz-sidebar-ink hover:bg-xyz-primary-dark transition-colors"
+            aria-label="Toggle Navigation Menu"
+          >
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+          <div className="flex h-7 w-7 items-center justify-center rounded bg-xyz-accent font-bold text-white text-xs">
             XYZ
           </div>
           <span className="font-bold text-base text-white tracking-tight">XYZ Bank</span>
         </div>
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="rounded p-1.5 text-xyz-sidebar-ink hover:bg-xyz-primary-dark"
-          aria-label="Toggle Navigation"
+
+        <Link
+          href="/ecosystem"
+          className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-xyz-accent/30 px-3 py-1 text-xs font-semibold text-white hover:bg-xyz-accent/50 transition-colors shadow-2xs"
         >
-          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
+          <Sparkles size={13} className="text-amber-400 animate-pulse" />
+          <span>G-Core</span>
+          <span className="rounded bg-amber-400 px-1.5 py-0.2 text-[9px] font-bold text-xyz-ink uppercase tracking-wider">
+            New
+          </span>
+        </Link>
       </div>
 
-      {/* Mobile Sidebar Overlay Drawer */}
+      {/* Mobile Sidebar Overlay Drawer Backdrop (< lg) */}
       {mobileOpen && (
         <div
           className="fixed inset-0 z-40 bg-xyz-ink/60 backdrop-blur-xs lg:hidden"
@@ -88,25 +110,40 @@ export function BankSidebar({ onNavigateToTransactions }: BankSidebarProps) {
         />
       )}
 
-      {/* Sidebar Container */}
+      {/* Sidebar Container:
+          On mobile (< lg): Hidden when mobileOpen is false. When mobileOpen is true: fixed overlay drawer.
+          On desktop (>= lg): Always visible, sticky w-64 sidebar.
+      */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-xyz-sidebar-bg text-xyz-sidebar-ink transition-transform duration-200 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
-          mobileOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={cn(
+          "w-64 flex-col bg-xyz-sidebar-bg text-xyz-sidebar-ink transition-transform duration-200 ease-in-out z-50 shrink-0",
+          mobileOpen
+            ? "fixed inset-y-0 left-0 flex translate-x-0 shadow-2xl"
+            : "hidden lg:flex lg:sticky lg:top-0 lg:h-screen lg:translate-x-0"
+        )}
       >
         {/* XYZ Bank Brand Header */}
-        <div className="flex items-center gap-3 border-b border-xyz-primary/40 px-6 py-5 shrink-0">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-xyz-accent font-bold text-white text-sm shadow-xs">
-            XYZ
-          </div>
-          <div>
-            <div className="font-bold text-lg text-white tracking-tight leading-none">
-              XYZ Bank
+        <div className="flex items-center justify-between border-b border-xyz-primary/40 px-6 py-5 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-xyz-accent font-bold text-white text-sm shadow-xs">
+              XYZ
             </div>
-            <div className="mt-1 flex items-center gap-1 text-[11px] text-xyz-sidebar-ink/70">
-              <ShieldCheck size={11} className="text-emerald-400" /> Secure Online Banking
+            <div>
+              <div className="font-bold text-lg text-white tracking-tight leading-none">
+                XYZ Bank
+              </div>
+              <div className="mt-1 flex items-center gap-1 text-[11px] text-xyz-sidebar-ink/70">
+                <ShieldCheck size={11} className="text-emerald-400" /> Secure Online Banking
+              </div>
             </div>
           </div>
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="lg:hidden rounded p-1 text-xyz-sidebar-ink/70 hover:text-white hover:bg-xyz-primary-dark"
+            aria-label="Close sidebar"
+          >
+            <X size={18} />
+          </button>
         </div>
 
         {/* User Block at Top */}

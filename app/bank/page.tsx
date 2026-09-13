@@ -98,15 +98,15 @@ export default function PlainXYZBankDashboard() {
   const recentTransactions = transactions.slice(0, 5);
 
   return (
-    <div className="flex min-h-screen bg-xyz-surface text-xyz-ink">
-      {/* Fixed Left Sidebar */}
+    <div className="flex flex-col lg:flex-row min-h-screen bg-xyz-surface text-xyz-ink w-full max-w-full overflow-x-hidden">
+      {/* Sidebar Component (Includes Compact Top Header on < lg, Hidden Sidebar Drawer on < lg when closed, Sticky Sidebar on >= lg) */}
       <BankSidebar onNavigateToTransactions={scrollToTransactions} />
 
-      {/* Main Content Area */}
-      <div className="flex min-h-screen flex-1 flex-col min-w-0">
-        {/* Top Header / Search Row */}
-        <header className="border-b border-xyz-border bg-white px-4 py-3 sm:px-6 sm:py-3.5 shadow-2xs">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
+      {/* Main Content Area: 100% width on mobile, zero left margin or padding offsets */}
+      <div className="flex min-h-screen flex-1 flex-col min-w-0 w-full max-w-full">
+        {/* Desktop Top Header / Search Row (HIDDEN ON MOBILE < lg) */}
+        <header className="hidden lg:block border-b border-xyz-border bg-white px-6 py-3.5 shadow-2xs">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
             {/* Search Input */}
             <div className="relative flex-1 max-w-md">
               <Search
@@ -116,14 +116,14 @@ export default function PlainXYZBankDashboard() {
               <input
                 type="text"
                 readOnly
-                placeholder="Search XYZ Bank..."
-                className="w-full rounded-lg border border-xyz-border bg-xyz-surface pl-10 pr-3 py-2 text-xs text-xyz-ink placeholder:text-xyz-ink-soft/60 focus:outline-none focus:border-xyz-accent cursor-pointer"
+                placeholder="Search XYZ Bank Online..."
+                className="w-full rounded-lg border border-xyz-border bg-xyz-surface pl-10 pr-4 py-2 text-xs text-xyz-ink placeholder:text-xyz-ink-soft/60 focus:outline-none focus:border-xyz-accent cursor-pointer"
               />
             </div>
 
             {/* Account Tier Badge & G-Core Quick Link */}
-            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-              <div className="hidden md:inline-flex items-center gap-1.5 rounded-full border border-xyz-border bg-xyz-surface px-3 py-1 text-xs font-medium text-xyz-ink-soft">
+            <div className="flex items-center gap-3">
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-xyz-border bg-xyz-surface px-3 py-1 text-xs font-medium text-xyz-ink-soft">
                 <Shield size={13} className="text-xyz-accent" />
                 <span>
                   Tier: <strong className="text-xyz-ink font-semibold">{status.tier} Member</strong>
@@ -132,11 +132,11 @@ export default function PlainXYZBankDashboard() {
 
               <Link
                 href="/ecosystem"
-                className="inline-flex items-center gap-1.5 rounded-full border border-xyz-accent/30 bg-xyz-accent-soft px-3 py-1.5 text-xs font-semibold text-xyz-primary hover:bg-xyz-accent/15 transition-colors shadow-2xs shrink-0"
+                className="inline-flex items-center gap-1.5 rounded-full border border-xyz-accent/30 bg-xyz-accent-soft px-3.5 py-1.5 text-xs font-semibold text-xyz-primary hover:bg-xyz-accent/15 transition-colors shadow-2xs"
               >
                 <Sparkles size={13} className="text-amber-500 animate-pulse" />
                 <span>G-Core</span>
-                <span className="rounded bg-xyz-primary px-1.5 py-0.2 text-[9px] font-bold text-white uppercase tracking-wider hidden xs:inline">
+                <span className="rounded bg-xyz-primary px-1.5 py-0.2 text-[9px] font-bold text-white uppercase tracking-wider">
                   New
                 </span>
               </Link>
@@ -147,53 +147,53 @@ export default function PlainXYZBankDashboard() {
         {/* Dashboard Body */}
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 sm:px-6 sm:py-8 space-y-6 sm:space-y-8">
           {/* Welcome Header */}
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="text-xs uppercase tracking-wider text-xyz-ink-soft font-semibold">
+              <div className="text-[11px] uppercase tracking-wider text-xyz-ink-soft font-semibold">
                 Online Banking &bull; Personal Account
               </div>
-              <h1 className="mt-1 text-2xl font-bold text-xyz-ink">
+              <h1 className="mt-1 text-xl sm:text-2xl font-bold text-xyz-ink">
                 {greeting()}, {customer.name.split(" ")[0]}.
               </h1>
             </div>
-            <div className="text-xs text-xyz-ink-soft font-medium flex items-center gap-1.5">
-              <Lock size={13} className="text-emerald-600" />
+            <div className="text-[11px] sm:text-xs text-xyz-ink-soft font-medium flex items-center gap-1.5">
+              <Lock size={13} className="text-emerald-600 shrink-0" />
               <span>Last login: Today, 09:42 AM</span>
             </div>
           </div>
 
           {/* Accounts & Cards Grid */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* My Accounts Card */}
-            <div id="accounts" className="rounded-xl border border-xyz-border bg-xyz-card p-6 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-xyz-border pb-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-xyz-accent-soft px-2.5 py-0.5 text-[11px] font-semibold text-xyz-primary border border-xyz-accent/20">
-                      Checking Account
-                    </span>
-                    <span className="text-xs font-mono text-xyz-ink-soft">
-                      *4821
-                    </span>
-                  </div>
-                  <div className="mt-3 text-3xl font-bold text-xyz-ink">
-                    {formatEuro(availableBalance)}
-                  </div>
-                  <div className="mt-1 text-xs text-xyz-ink-soft">
-                    Total ledger balance: {formatEuro(currentBalance)}
-                  </div>
+            {/* My Accounts Card (FULL WIDTH ON MOBILE) */}
+            <div id="accounts" className="w-full max-w-none rounded-xl border border-xyz-border bg-xyz-card p-4 sm:p-6 shadow-2xs">
+              <div className="border-b border-xyz-border pb-4">
+                <div className="flex items-center justify-between">
+                  <span className="rounded-full bg-xyz-accent-soft px-2.5 py-0.5 text-[11px] font-semibold text-xyz-primary border border-xyz-accent/20">
+                    Checking Account
+                  </span>
+                  <span className="text-xs font-mono text-xyz-ink-soft font-semibold">
+                    *4821
+                  </span>
                 </div>
 
-                <div className="flex flex-col gap-2">
+                <div className="mt-3 font-display text-3xl font-bold text-xyz-ink tracking-tight">
+                  {formatEuro(availableBalance)}
+                </div>
+                <div className="mt-1 text-xs text-xyz-ink-soft font-medium">
+                  Total ledger balance: <span className="font-semibold text-xyz-ink">{formatEuro(currentBalance)}</span>
+                </div>
+
+                {/* Account Action Buttons: Horizontal Grid [ All Accounts ] [ Account Activity ] on Mobile */}
+                <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-end">
                   <button
                     onClick={() => {}}
-                    className="flex items-center justify-center gap-1.5 rounded-lg border border-xyz-border bg-xyz-surface px-3 py-1.5 text-xs font-semibold text-xyz-ink hover:bg-xyz-accent-soft hover:text-xyz-primary transition-colors"
+                    className="flex items-center justify-center gap-1 rounded-lg border border-xyz-border bg-xyz-surface px-3 py-2 text-xs font-semibold text-xyz-ink hover:bg-xyz-accent-soft hover:text-xyz-primary transition-colors"
                   >
                     All Accounts
                   </button>
                   <button
                     onClick={scrollToTransactions}
-                    className="flex items-center justify-center gap-1.5 rounded-lg bg-xyz-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-xyz-primary-dark transition-colors shadow-2xs"
+                    className="flex items-center justify-center gap-1 rounded-lg bg-xyz-primary px-3 py-2 text-xs font-semibold text-white hover:bg-xyz-primary-dark transition-colors shadow-2xs"
                   >
                     Account Activity
                   </button>
@@ -215,10 +215,10 @@ export default function PlainXYZBankDashboard() {
                     return (
                       <div
                         key={txn.id}
-                        className="flex items-center justify-between py-3 px-1 text-sm hover:bg-xyz-surface transition-colors"
+                        className="flex items-start justify-between gap-4 py-3 px-1 text-sm hover:bg-xyz-surface transition-colors"
                       >
-                        <div>
-                          <div className="font-medium text-xyz-ink">{txn.merchant}</div>
+                        <div className="min-w-0 flex-1 break-words">
+                          <div className="font-medium text-xyz-ink truncate">{txn.merchant}</div>
                           <div className="text-xs text-xyz-ink-soft">
                             {new Date(txn.date).toLocaleDateString("en-GB", {
                               day: "2-digit",
@@ -227,7 +227,7 @@ export default function PlainXYZBankDashboard() {
                           </div>
                         </div>
                         <div
-                          className={`font-semibold font-mono text-sm ${
+                          className={`shrink-0 text-right font-semibold font-mono text-sm ${
                             isInflow ? "text-emerald-600" : "text-xyz-ink"
                           }`}
                         >
@@ -240,8 +240,8 @@ export default function PlainXYZBankDashboard() {
               </div>
             </div>
 
-            {/* My Credit Cards Card */}
-            <div id="cards" className="flex flex-col justify-between rounded-xl border border-xyz-border bg-xyz-card p-6 shadow-2xs">
+            {/* My Credit Cards Card (FULL WIDTH ON MOBILE) */}
+            <div id="cards" className="w-full max-w-none flex flex-col justify-between rounded-xl border border-xyz-border bg-xyz-card p-4 sm:p-6 shadow-2xs">
               <div>
                 <div className="flex items-center justify-between border-b border-xyz-border pb-4">
                   <h2 className="font-bold text-lg text-xyz-ink">My Credit Cards</h2>
@@ -298,7 +298,7 @@ export default function PlainXYZBankDashboard() {
               Quick Shortcuts
             </div>
 
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-3 md:grid-cols-5">
               {[
                 { label: "My Assets", icon: Building2 },
                 { label: "Recent Transactions", icon: Receipt, action: scrollToTransactions },
@@ -311,9 +311,9 @@ export default function PlainXYZBankDashboard() {
                   <button
                     key={shortcut.label}
                     onClick={shortcut.action || (() => {})}
-                    className="flex flex-col items-center justify-center rounded-xl border border-xyz-border bg-xyz-card p-4 text-center hover:border-xyz-accent hover:bg-xyz-accent-soft/50 transition-all shadow-2xs group"
+                    className="flex flex-col items-center justify-center rounded-xl border border-xyz-border bg-xyz-card p-3.5 sm:p-4 text-center hover:border-xyz-accent hover:bg-xyz-accent-soft/50 transition-all shadow-2xs group"
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-xyz-surface text-xyz-primary group-hover:bg-xyz-primary group-hover:text-white transition-colors">
+                    <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-xyz-surface text-xyz-primary group-hover:bg-xyz-primary group-hover:text-white transition-colors">
                       <Icon size={18} />
                     </div>
                     <span className="mt-2 text-xs font-semibold text-xyz-ink group-hover:text-xyz-primary transition-colors">
@@ -326,7 +326,7 @@ export default function PlainXYZBankDashboard() {
           </div>
 
           {/* Promo Carousel */}
-          <div className="rounded-xl border border-xyz-border bg-xyz-card p-6 shadow-2xs">
+          <div className="rounded-xl border border-xyz-border bg-xyz-card p-4 sm:p-6 shadow-2xs">
             <div className="flex items-center justify-between mb-4">
               <span className="text-xs font-bold uppercase tracking-wider text-xyz-ink-soft">
                 Featured Bank Offers
@@ -349,7 +349,7 @@ export default function PlainXYZBankDashboard() {
               </div>
             </div>
 
-            <div className="relative min-h-[100px] rounded-lg border border-xyz-border bg-xyz-surface p-5 flex flex-col justify-between">
+            <div className="relative min-h-[100px] rounded-lg border border-xyz-border bg-xyz-surface p-4 sm:p-5 flex flex-col justify-between">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="rounded bg-xyz-primary px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
                   {CAROUSEL_OFFERS[currentSlide].badge}
