@@ -13,6 +13,13 @@ import type {
   GMarketItem,
   ClaimFailureReason,
 } from "./types";
+import {
+  loadDemoState,
+  saveDemoState,
+  claimGMarketItemEngine,
+  simulateSwitchBankEngine,
+  DemoEngineState,
+} from "./demo-engine";
 
 const CUSTOMER_ID = "alex-001";
 
@@ -33,137 +40,81 @@ interface GCoreContextValue extends GCoreState {
 
 const GCoreContext = createContext<GCoreContextValue | null>(null);
 
-async function getJSON<T>(path: string): Promise<T> {
-  const res = await fetch(path);
-  if (!res.ok) throw new Error(`${path} failed: ${res.status}`);
-  return res.json();
-}
-
-async function postJSON<T>(path: string, body: object): Promise<T> {
-  const res = await fetch(path, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    if (data.error) {
-      throw new Error(data.error);
-    }
-    throw new Error(`${path} failed: ${res.status}`);
-  }
-  return res.json();
-}
-
 export function GCoreProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<GCoreState>({
-    account: null,
-    ledger: [],
-    items: [],
-    loading: true,
-    switchedBank: false,
-  });
+  const [engineState, setEngineState] = useState<DemoEngineState>(() => loadDemoState());
+
+  const syncWithBackendAsync = useCallback((endpoint: string, body?: object) => {
+    if (typeof window === "undefined") return;
+    fetch(endpoint, {
+      method: body ? "POST" : "GET",
+      headers: { "Content-Type": "application/json" },
+      body: body ? JSON.stringify(body) : undefined,
+    }).catch(() => {
+      // Swallowed on Vercel preview/production so client demo engine remains 100% reliable
+    });
+  }, []);
 
   const refresh = useCallback(async () => {
-    try {
-      const [stateData, gmarketData] = await Promise.all([
-        getJSON<{ account: GCoreAccount; ledger: GCoreLedgerEntry[] }>(
-          `/api/gcore/state?customerId=${CUSTOMER_ID}`
-        ),
-        getJSON<{ items: GMarketItem[] }>(`/api/gcore/gmarket`),
-      ]);
-
-      setState((prev) => ({
-        ...prev,
-        account: stateData.account,
-        ledger: stateData.ledger,
-        items: gmarketData.items ?? [],
-        loading: false,
-      }));
-    } catch {
-      setState((prev) => ({ ...prev, loading: false }));
-    }
+    const loaded = loadDemoState();
+    setEngineState(loaded);
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    Promise.all([
-      getJSON<{ account: GCoreAccount; ledger: GCoreLedgerEntry[] }>(
-        `/api/gcore/state?customerId=${CUSTOMER_ID}`
-      ),
-      getJSON<{ items: GMarketItem[] }>(`/api/gcore/gmarket`),
-    ])
-      .then(([stateData, gmarketData]) => {
-        if (!cancelled) {
-          setState((prev) => ({
-            ...prev,
-            account: stateData.account,
-            ledger: stateData.ledger,
-            items: gmarketData.items ?? [],
-            loading: false,
-          }));
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setState((prev) => ({ ...prev, loading: false }));
-        }
-      });
+    const loaded = loadDemoState();
+    setEngineState(loaded);
 
-    return () => {
-      cancelled = true;
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "MERIT_DEMO_ENGINE_STATE_V2") {
+        setEngineState(loadDemoState());
+      }
     };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
   const claim = useCallback(
     async (itemId: string): Promise<{ success: boolean; reason?: ClaimFailureReason }> => {
-      try {
-        const res = await postJSON<{
-          account: GCoreAccount;
-          ledger: GCoreLedgerEntry[];
-        }>("/api/gcore/claim", { customerId: CUSTOMER_ID, itemId });
-
-        const gmarketData = await getJSON<{ items: GMarketItem[] }>("/api/gcore/gmarket").catch(
-          () => ({ items: [] })
-        );
-
-        setState((prev) => ({
-          ...prev,
-          account: res.account,
-          ledger: res.ledger,
-          items: gmarketData.items ?? prev.items,
-        }));
-
-        return { success: true };
-      } catch (err) {
-        const reason = (err instanceof Error ? err.message : "not_found") as ClaimFailureReason;
-        return { success: false, reason };
-      }
+      let resResult: { success: boolean; reason?: ClaimFailureReason } = { success: false, reason: "not_found" };
+      setEngineState((prev) => {
+        const { nextState, result } = claimGMarketItemEngine(prev, itemId);
+        resResult = result;
+        if (result.success) {
+          saveDemoState(nextState);
+          return nextState;
+        }
+        return prev;
+      });
+      syncWithBackendAsync("/api/gcore/claim", { customerId: CUSTOMER_ID, itemId });
+      return resResult;
     },
-    []
+    [syncWithBackendAsync]
   );
 
   const switchBank = useCallback(async () => {
-    const data = await postJSON<{
-      gcore: { account: GCoreAccount; ledger: GCoreLedgerEntry[] };
-    }>("/api/simulation/switch-bank", { customerId: CUSTOMER_ID });
-
-    setState((prev) => ({
-      ...prev,
-      account: data.gcore.account,
-      ledger: data.gcore.ledger,
-      switchedBank: true,
-    }));
-  }, []);
+    setEngineState((prev) => {
+      const next = simulateSwitchBankEngine(prev);
+      saveDemoState(next);
+      return next;
+    });
+    syncWithBackendAsync("/api/simulation/switch-bank", { customerId: CUSTOMER_ID });
+  }, [syncWithBackendAsync]);
 
   const clearSwitchedBankFlag = useCallback(() => {
-    setState((prev) => ({ ...prev, switchedBank: false }));
+    setEngineState((prev) => {
+      const next = { ...prev, switchedBank: false };
+      saveDemoState(next);
+      return next;
+    });
   }, []);
 
   return (
     <GCoreContext.Provider
       value={{
-        ...state,
+        account: engineState.gcore.account,
+        ledger: engineState.gcore.ledger,
+        items: engineState.gcore.items,
+        loading: false,
+        switchedBank: engineState.switchedBank,
         claim,
         switchBank,
         refresh,

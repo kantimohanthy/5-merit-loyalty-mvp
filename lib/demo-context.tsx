@@ -18,13 +18,19 @@ import {
   Transaction,
 } from "./types";
 import {
-  CUSTOMER,
-  INITIAL_BANK_METRICS,
-  INITIAL_PLAN,
-  INITIAL_REWARDS,
-  INITIAL_STATUS,
-  INITIAL_TRANSACTIONS,
-} from "./mock-data";
+  loadDemoState,
+  saveDemoState,
+  resetDemoState,
+  simulateMonthEngine,
+  simulateEmergencyEngine,
+  simulateOverspendEngine,
+  simulateTransferEngine,
+  confirmTransactionEngine,
+  Celebration,
+  ExcludedTransfer,
+  RewardDetail,
+  DemoEngineState,
+} from "./demo-engine";
 
 export const CATEGORY_CLASSIFICATION: Record<Category, Classification> = {
   Rent: "essential",
@@ -42,22 +48,6 @@ export const CATEGORY_CLASSIFICATION: Record<Category, Classification> = {
 
 const CUSTOMER_ID = "alex-001";
 
-export interface Celebration {
-  pointsAwarded: number;
-  newStreak: number;
-  unlockedRewardId: string | null;
-}
-
-interface ExcludedTransfer {
-  transactionId: string;
-  reason: string;
-}
-
-export interface RewardDetail {
-  id: string;
-  why: string[];
-}
-
 interface DemoState {
   customer: Customer;
   plan: MonthlyPlan;
@@ -69,65 +59,12 @@ interface DemoState {
   celebration: Celebration | null;
   emergencyActive: boolean;
   transferBannerActive: boolean;
+  overspendActive: boolean;
+  switchedBank: boolean;
   excludedTransfers: ExcludedTransfer[];
   monthSimulated: boolean;
   loading: boolean;
   hydrated: boolean;
-}
-
-// Everything the backend can hand back in one snapshot — the client no
-// longer computes any of this itself, it only renders it.
-interface ServerSnapshot {
-  customer: Customer;
-  plan: MonthlyPlan;
-  status: StatusProfile;
-  transactions: Transaction[];
-  rewards: Reward[];
-  rewardDetails?: RewardDetail[];
-  bank: BankMetrics;
-  excludedTransfers?: ExcludedTransfer[];
-  celebration?: Celebration;
-}
-
-function optimisticInitialState(): DemoState {
-  return {
-    customer: CUSTOMER,
-    plan: { ...INITIAL_PLAN },
-    transactions: INITIAL_TRANSACTIONS.map((t) => ({ ...t })),
-    rewards: INITIAL_REWARDS.map((r) => ({ ...r })),
-    rewardDetails: [],
-    status: {
-      ...INITIAL_STATUS,
-      dimensions: INITIAL_STATUS.dimensions.map((d) => ({ ...d })),
-    },
-    bank: {
-      ...INITIAL_BANK_METRICS,
-      engagementFeed: INITIAL_BANK_METRICS.engagementFeed.map((e) => ({ ...e })),
-    },
-    celebration: null,
-    emergencyActive: false,
-    transferBannerActive: false,
-    excludedTransfers: [],
-    monthSimulated: false,
-    loading: true,
-    hydrated: false,
-  };
-}
-
-async function postJSON<T = ServerSnapshot>(path: string, body: object): Promise<T> {
-  const res = await fetch(path, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(`${path} failed: ${res.status}`);
-  return res.json();
-}
-
-async function getJSON<T = ServerSnapshot>(path: string): Promise<T> {
-  const res = await fetch(path);
-  if (!res.ok) throw new Error(`${path} failed: ${res.status}`);
-  return res.json();
 }
 
 interface DemoContextValue extends DemoState {
@@ -145,110 +82,147 @@ interface DemoContextValue extends DemoState {
 
 const DemoContext = createContext<DemoContextValue | null>(null);
 
-export function DemoProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<DemoState>(optimisticInitialState);
+function mapEngineStateToDemoState(engineState: DemoEngineState): DemoState {
+  return {
+    customer: engineState.customer,
+    plan: engineState.plan,
+    transactions: engineState.transactions,
+    rewards: engineState.rewards,
+    rewardDetails: engineState.rewardDetails,
+    status: engineState.status,
+    bank: engineState.bank,
+    celebration: engineState.celebration,
+    emergencyActive: engineState.emergencyActive,
+    transferBannerActive: engineState.transferBannerActive,
+    overspendActive: engineState.overspendActive,
+    switchedBank: engineState.switchedBank,
+    excludedTransfers: engineState.excludedTransfers,
+    monthSimulated: engineState.monthSimulated,
+    loading: false,
+    hydrated: true,
+  };
+}
 
-  const applySnapshot = useCallback(
-    (snapshot: ServerSnapshot, extra?: Partial<DemoState>) => {
-      setState((prev) => ({
-        ...prev,
-        customer: snapshot.customer,
-        plan: snapshot.plan,
-        status: snapshot.status,
-        transactions: snapshot.transactions,
-        rewards: snapshot.rewards,
-        rewardDetails: snapshot.rewardDetails ?? prev.rewardDetails,
-        bank: snapshot.bank,
-        excludedTransfers: snapshot.excludedTransfers ?? prev.excludedTransfers,
-        loading: false,
-        hydrated: true,
-        ...extra,
-      }));
-    },
-    []
-  );
+export function DemoProvider({ children }: { children: React.ReactNode }) {
+  const [engineState, setEngineState] = useState<DemoEngineState>(() => loadDemoState());
+
+  // Background non-blocking sync with API backend if available
+  const syncWithBackendAsync = useCallback((endpoint: string, body?: object) => {
+    if (typeof window === "undefined") return;
+    fetch(endpoint, {
+      method: body ? "POST" : "GET",
+      headers: { "Content-Type": "application/json" },
+      body: body ? JSON.stringify(body) : undefined,
+    }).catch(() => {
+      // Swallowed on Vercel preview/production so client demo engine remains 100% reliable
+    });
+  }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    getJSON(`/api/state?customerId=${CUSTOMER_ID}`)
-      .then((data) => {
-        if (!cancelled) applySnapshot(data);
-      })
-      .catch(() => {
-        // Backend unreachable (e.g. previewed without `npm run dev`) — keep
-        // the optimistic seed data so the UI still renders something.
-        if (!cancelled) setState((prev) => ({ ...prev, loading: false }));
-      });
-    return () => {
-      cancelled = true;
+    const loaded = loadDemoState();
+    setEngineState(loaded);
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "MERIT_DEMO_ENGINE_STATE_V2") {
+        setEngineState(loadDemoState());
+      }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
   const simulateMonth = useCallback(async () => {
-    const data = await postJSON("/api/simulation/month", { customerId: CUSTOMER_ID });
-    applySnapshot(data, { celebration: data.celebration ?? null, monthSimulated: true });
-  }, [applySnapshot]);
+    setEngineState((prev) => {
+      const next = simulateMonthEngine(prev);
+      saveDemoState(next);
+      return next;
+    });
+    syncWithBackendAsync("/api/simulation/month", { customerId: CUSTOMER_ID });
+  }, [syncWithBackendAsync]);
 
   const simulateEmergency = useCallback(async () => {
-    const data = await postJSON("/api/simulation/emergency", { customerId: CUSTOMER_ID });
-    applySnapshot(data, { emergencyActive: true });
-  }, [applySnapshot]);
+    setEngineState((prev) => {
+      const next = simulateEmergencyEngine(prev);
+      saveDemoState(next);
+      return next;
+    });
+    syncWithBackendAsync("/api/simulation/emergency", { customerId: CUSTOMER_ID });
+  }, [syncWithBackendAsync]);
 
   const simulateOverspend = useCallback(async () => {
-    const data = await postJSON("/api/simulation/overspend", { customerId: CUSTOMER_ID });
-    applySnapshot(data, { monthSimulated: true });
-  }, [applySnapshot]);
+    setEngineState((prev) => {
+      const next = simulateOverspendEngine(prev);
+      saveDemoState(next);
+      return next;
+    });
+    syncWithBackendAsync("/api/simulation/overspend", { customerId: CUSTOMER_ID });
+  }, [syncWithBackendAsync]);
 
   const simulateTransfer = useCallback(async () => {
-    const data = await postJSON("/api/simulation/transfer", { customerId: CUSTOMER_ID });
-    applySnapshot(data, { transferBannerActive: true });
-  }, [applySnapshot]);
+    setEngineState((prev) => {
+      const next = simulateTransferEngine(prev);
+      saveDemoState(next);
+      return next;
+    });
+    syncWithBackendAsync("/api/simulation/transfer", { customerId: CUSTOMER_ID });
+  }, [syncWithBackendAsync]);
 
   const confirmTransaction = useCallback(
     async (id: string, category: Category) => {
-      await fetch(`/api/transactions/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ customerId: CUSTOMER_ID, category }),
+      setEngineState((prev) => {
+        const next = confirmTransactionEngine(prev, id, category);
+        saveDemoState(next);
+        return next;
       });
-      const data = await getJSON(`/api/state?customerId=${CUSTOMER_ID}`);
-      applySnapshot(data);
+      syncWithBackendAsync(`/api/transactions/${id}`, { customerId: CUSTOMER_ID, category });
     },
-    [applySnapshot]
+    [syncWithBackendAsync]
   );
 
-  const clearCelebration = useCallback(
-    () => setState((prev) => ({ ...prev, celebration: null })),
-    []
-  );
-  const clearEmergencyBanner = useCallback(
-    () => setState((prev) => ({ ...prev, emergencyActive: false })),
-    []
-  );
-  const clearTransferBanner = useCallback(
-    () => setState((prev) => ({ ...prev, transferBannerActive: false })),
-    []
-  );
+  const clearCelebration = useCallback(() => {
+    setEngineState((prev) => {
+      const next = { ...prev, celebration: null };
+      saveDemoState(next);
+      return next;
+    });
+  }, []);
+
+  const clearEmergencyBanner = useCallback(() => {
+    setEngineState((prev) => {
+      const next = { ...prev, emergencyActive: false };
+      saveDemoState(next);
+      return next;
+    });
+  }, []);
+
+  const clearTransferBanner = useCallback(() => {
+    setEngineState((prev) => {
+      const next = { ...prev, transferBannerActive: false };
+      saveDemoState(next);
+      return next;
+    });
+  }, []);
 
   const reset = useCallback(async () => {
-    const data = await postJSON("/api/simulation/reset", { customerId: CUSTOMER_ID });
-    applySnapshot(data, {
-      celebration: null,
-      emergencyActive: false,
-      transferBannerActive: false,
-      monthSimulated: false,
-    });
-  }, [applySnapshot]);
+    const fresh = resetDemoState();
+    setEngineState(fresh);
+    syncWithBackendAsync("/api/simulation/reset", { customerId: CUSTOMER_ID });
+  }, [syncWithBackendAsync]);
 
   const triggerCelebration = useCallback((celebration: Celebration) => {
-    setState((prev) => ({ ...prev, celebration }));
+    setEngineState((prev) => {
+      const next = { ...prev, celebration };
+      saveDemoState(next);
+      return next;
+    });
   }, []);
+
+  const demoState = mapEngineStateToDemoState(engineState);
 
   return (
     <DemoContext.Provider
       value={{
-        ...state,
+        ...demoState,
         simulateMonth,
         simulateEmergency,
         simulateOverspend,

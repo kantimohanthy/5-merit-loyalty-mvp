@@ -361,6 +361,40 @@ export default function BankAdminPage() {
           </div>
         </div>
 
+        {/* Live Event Stream Panel */}
+        <div className="mt-8 rounded-xl border border-xyz-border bg-xyz-card p-6 shadow-2xs">
+          <div className="flex items-center justify-between border-b border-xyz-border pb-3">
+            <div>
+              <div className="text-xs font-bold uppercase tracking-wider text-xyz-ink-soft">
+                Live Portfolio Event Stream &bull; Institutional Audit Log
+              </div>
+              <h3 className="font-bold text-base text-xyz-ink mt-0.5">
+                Real-Time Behavioral &amp; Protection Signals
+              </h3>
+            </div>
+            <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700">
+              Live Feed
+            </span>
+          </div>
+
+          <div className="mt-4 space-y-2">
+            {bank.engagementFeed.map((evt) => (
+              <div
+                key={evt.id}
+                className="flex items-center justify-between rounded-lg border border-xyz-border bg-xyz-surface px-4 py-2.5 text-xs"
+              >
+                <div>
+                  <div className="font-bold text-xyz-ink">{evt.label}</div>
+                  <div className="text-xyz-ink-soft text-[11px] mt-0.5">{evt.detail}</div>
+                </div>
+                <div className="font-mono text-[11px] text-xyz-ink-soft font-medium">
+                  {evt.timestamp}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Analytics Charts */}
         <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="rounded-xl border border-xyz-border bg-xyz-card p-6 shadow-2xs">

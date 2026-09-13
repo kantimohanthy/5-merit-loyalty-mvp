@@ -447,14 +447,27 @@ export function resetCustomer(db: Database.Database, customerId: string) {
 export function getDb(): Database.Database {
   if (global.__meritDb) return global.__meritDb;
 
-  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-  const db = new Database(DB_PATH);
-  db.pragma("journal_mode = WAL");
-  createSchema(db);
-  seed(db);
-
-  global.__meritDb = db;
-  return db;
+  try {
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+    const db = new Database(DB_PATH);
+    try {
+      db.pragma("journal_mode = WAL");
+    } catch {
+      // WAL mode unsupported on read-only environments
+    }
+    createSchema(db);
+    seed(db);
+    global.__meritDb = db;
+    return db;
+  } catch {
+    // Vercel read-only filesystem fallback to in-memory SQLite
+    const db = new Database(":memory:");
+    createSchema(db);
+    seed(db);
+    global.__meritDb = db;
+    return db;
+  }
 }
 
 export const DEFAULT_CUSTOMER_ID = "alex-001";
+
