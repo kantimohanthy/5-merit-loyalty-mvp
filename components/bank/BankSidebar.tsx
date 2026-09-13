@@ -1,5 +1,4 @@
 "use client";
-// XYZ Bank Mobile Sidebar Component - Updated 2026-09-13T11:02:00Z
 
 import React, { useState } from "react";
 import Link from "next/link";
