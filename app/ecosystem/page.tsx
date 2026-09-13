@@ -57,7 +57,7 @@ interface MonthSummary {
 
 export default function EcosystemOverviewPage() {
   const { customer, plan, status, triggerCelebration } = useDemo();
-  const { account, claimItem } = useGCore();
+  const { account, claim } = useGCore();
   const [activeDimensionPopover, setActiveDimensionPopover] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [hoveredTier, setHoveredTier] = useState<string | null>(null);
@@ -128,7 +128,7 @@ export default function EcosystemOverviewPage() {
     setClaiming(true);
     setClaimError(null);
     try {
-      const res = await claimItem("gm6"); // Or gm4 fallback
+      const res = await claim("gm6"); // Or gm4 fallback
       if (res.success) {
         setClaimSuccess(true);
         triggerCelebration({
