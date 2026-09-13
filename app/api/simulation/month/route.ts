@@ -6,7 +6,7 @@ import { writeEvent } from "@/lib/server/event-engine";
 import { readBankSnapshot } from "@/lib/server/bank-snapshot";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+export const dynamic = process.env.GITHUB_ACTIONS === "true" || process.env.NEXT_PUBLIC_STATIC_DEMO === "true" ? undefined : "force-dynamic";
 
 const POINTS_PER_MONTH = 250;
 const MIN_MONTHLY_CONTRIBUTION = 50;

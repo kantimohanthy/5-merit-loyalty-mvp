@@ -4,7 +4,11 @@ import { CATEGORY_CLASSIFICATION } from "@/lib/server/classification-engine";
 import type { Category } from "@/lib/types";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+export const dynamic = process.env.GITHUB_ACTIONS === "true" || process.env.NEXT_PUBLIC_STATIC_DEMO === "true" ? undefined : "force-dynamic";
+
+export async function generateStaticParams() {
+  return [{ id: "tx1" }, { id: "tx2" }, { id: "tx3" }];
+}
 
 // Human correction of an automated category — confidence goes to 1.0 since
 // it's now verified by the customer, and classification is re-derived from

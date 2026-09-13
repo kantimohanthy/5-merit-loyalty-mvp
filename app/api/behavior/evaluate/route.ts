@@ -3,7 +3,7 @@ import { DEFAULT_CUSTOMER_ID } from "@/lib/server/db";
 import { runPipeline } from "@/lib/server/pipeline";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+export const dynamic = process.env.GITHUB_ACTIONS === "true" || process.env.NEXT_PUBLIC_STATIC_DEMO === "true" ? undefined : "force-dynamic";
 
 // The core analysis endpoint: classifies + contextualizes + scores this
 // customer's transaction history and returns eligible rewards with reasons.

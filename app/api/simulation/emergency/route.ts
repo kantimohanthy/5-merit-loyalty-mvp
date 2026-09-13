@@ -6,7 +6,7 @@ import { runPipeline } from "@/lib/server/pipeline";
 import { readBankSnapshot } from "@/lib/server/bank-snapshot";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+export const dynamic = process.env.GITHUB_ACTIONS === "true" || process.env.NEXT_PUBLIC_STATIC_DEMO === "true" ? undefined : "force-dynamic";
 
 const EMERGENCY_ID = "emergency-1";
 

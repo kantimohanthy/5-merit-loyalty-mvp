@@ -4,13 +4,17 @@ import { runPipeline } from "@/lib/server/pipeline";
 import { readBankSnapshot } from "@/lib/server/bank-snapshot";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+export const dynamic = process.env.GITHUB_ACTIONS === "true" || process.env.NEXT_PUBLIC_STATIC_DEMO === "true" ? undefined : "force-dynamic";
 
 // Full state bundle for the client demo shell: hydrates the customer app on
 // first load and after any correction that isn't itself a "simulate *"
 // action. Every simulate/* endpoint returns this same shape directly.
-export async function GET(req: NextRequest) {
-  const customerId = req.nextUrl.searchParams.get("customerId") ?? DEFAULT_CUSTOMER_ID;
+export async function GET(req: Request) {
+  if (process.env.GITHUB_ACTIONS === "true" || process.env.NEXT_PUBLIC_STATIC_DEMO === "true") {
+    return NextResponse.json({ state: null });
+  }
+  const url = new URL(req?.url ?? "http://localhost");
+  const customerId = url.searchParams.get("customerId") ?? DEFAULT_CUSTOMER_ID;
   try {
     const snapshot = runPipeline(customerId, { emitEvents: false });
     const bank = readBankSnapshot(getDb());

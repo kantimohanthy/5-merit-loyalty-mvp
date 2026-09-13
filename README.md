@@ -1,16 +1,25 @@
-# Merit — Behavioral Banking Loyalty Infrastructure
+# MERIT × G-Core — Behavioral Banking Loyalty Infrastructure
 
-A hackathon MVP: banks reward *financial discipline*, not just spending.
+A fintech hackathon MVP: banks reward *financial discipline*, not just spending.
 Built with Next.js 14 (App Router), TypeScript, Tailwind CSS, Framer Motion, Recharts.
 
-## Run it
+---
+
+## Live Deployments
+
+* **GitHub Pages Static Demo**: [kantimohanthy.github.io/5-merit-loyalty-mvp/](https://kantimohanthy.github.io/5-merit-loyalty-mvp/)
+* **Vercel Production**: [5-merit-loyalty-mvp.vercel.app](https://5-merit-loyalty-mvp.vercel.app/)
+
+---
+
+## Local Development
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open http://localhost:3000
+Open [http://localhost:3000](http://localhost:3000)
 
 Production build:
 
@@ -19,29 +28,30 @@ npm run build
 npm run start
 ```
 
-## Pages
+---
 
-- `/` — public landing page (hero, three actors, how it works, flywheel, pitch)
-- `/dashboard` — customer Overview (plan snapshot, streak, points, next reward)
-- `/dashboard/plan` — behavior model visualization (income allocation, contextual rules)
-- `/dashboard/activity` — transactions with classification confidence + correction
-- `/dashboard/rewards` — unlocked/locked rewards
-- `/dashboard/status` — behavioral credential (tier, history, portability preview)
-- `/bank` — bank partner dashboard (portfolio metrics, churn/redemption charts, live feed)
-- `/architecture` — data-flow + privacy diagram, ecosystem flywheel
+## GitHub Pages Static Demo Architecture
 
-## The live demo
+GitHub Pages is a static hosting platform. The GitHub Pages build uses:
+- **Next.js Static Export** (`output: "export"`, `basePath: "/5-merit-loyalty-mvp"`)
+- **Browser-Native Central Demo Engine** (`lib/demo-engine.ts`) with `localStorage` persistence (`MERIT_DEMO_ENGINE_STATE_V2`)
+- **Zero Runtime Server Dependencies**: No Node.js server or writable SQLite required during jury evaluation. All simulation actions execute deterministically in the client browser.
 
-State lives in one React context (`lib/demo-context.tsx`) mounted at the root layout, so
-it's shared across every page **as long as you navigate with the in-app links** (not a
-hard browser refresh, which resets the mock data on purpose).
+---
 
-- **Simulate Month** (top bar, any customer page) → plan hits target, +250 points,
-  streak +1, Adidas reward unlocks, and a new row appears in the bank's live engagement
-  feed — click through to `/bank` to show it updating live.
-- **Simulate Emergency Expense** (top bar or Activity page) → adds a €450 healthcare
-  transaction, banner confirms it's excluded from discretionary scoring, status/streak
-  unaffected.
-- Reset icon appears next to the buttons after the first simulation, to rerun the demo.
+## Jury-Facing Customer & Admin Experience
 
-All bank-side metrics are clearly labeled **simulated demo data**.
+- **Customer App (`/bank`)**: Interactive banking interface with real-time balance tracking, category re-classification, and rate advantages.
+- **MERIT Ecosystem (`/ecosystem`)**: Unified overview displaying verified streaks, multi-tier progression, budget allocation, Sarajevo summit pass celebration, and G-Market privileges.
+- **Bank Admin (`/bank-admin`)**: Live portfolio event stream audit log reflecting real-time simulation events triggered across customer sessions.
+- **G-Pass (`/ecosystem/passport`)**: Portable, zero-knowledge ecosystem identity credential preserving user reputation across financial partners.
+
+---
+
+## Simulation Controls
+
+- **Simulate Month** → Advances month, increments streak (+1 mo), recalculates discretionary ratio, awards +250 GP, unlocks reward `r1`.
+- **Simulate Emergency Expense** → Injects $450 healthcare expense, classifies as **PROTECTED**, adjusts target baseline without penalty.
+- **Simulate Overspend** → Injects $380 discretionary expense, adjusts ratio, updates status to supportive *"Currently above discretionary target range"*.
+- **Simulate Transfer** → Injects matching $500 transfer pair, flags as internal transfer, excludes from behavioral progress.
+- **Reset Simulation** → Flushes `localStorage`, restores canonical initial demo state across all 19 routes for immediate repeatability.
