@@ -18,6 +18,9 @@ import {
   Check,
   X,
   Flame,
+  Lock,
+  MapPin,
+  Building,
 } from "lucide-react";
 import { useDemo } from "@/lib/demo-context";
 import { useGCore } from "@/lib/gcore-context";
@@ -52,6 +55,7 @@ interface MonthSummary {
   status: "ACHIEVED" | "ON_TRACK" | "AT_RISK";
   discretionarySpent: number;
   savingsSaved: number;
+  remaining: number;
   note: string;
 }
 
@@ -94,6 +98,7 @@ export default function EcosystemOverviewPage() {
       status: plan.status,
       discretionarySpent: plan.discretionarySpent,
       savingsSaved: plan.savingsSaved,
+      remaining: Math.max(0, plan.discretionaryTarget - plan.discretionarySpent),
       note: "Current billing cycle active. Discretionary spending within target limit.",
     },
     {
@@ -101,6 +106,7 @@ export default function EcosystemOverviewPage() {
       status: "ACHIEVED",
       discretionarySpent: 310,
       savingsSaved: 140,
+      remaining: 50,
       note: "Met savings target of €140 and stayed under €360 discretionary ceiling.",
     },
     {
@@ -108,6 +114,7 @@ export default function EcosystemOverviewPage() {
       status: "ACHIEVED",
       discretionarySpent: 340,
       savingsSaved: 120,
+      remaining: 40,
       note: "Maintained 100% payment regularity and built 2-month consistency streak.",
     },
   ];
@@ -128,7 +135,7 @@ export default function EcosystemOverviewPage() {
     setClaiming(true);
     setClaimError(null);
     try {
-      const res = await claim("gm6"); // Or gm4 fallback
+      const res = await claim("gm6");
       if (res.success) {
         setClaimSuccess(true);
         triggerCelebration({
@@ -163,7 +170,7 @@ export default function EcosystemOverviewPage() {
           <h1 className="mt-2 font-display text-3xl text-ink lg:text-4xl">
             {greeting()}, {customer.name.split(" ")[0]}.
           </h1>
-          <div className="mt-3 flex items-center gap-2">
+          <div className="mt-3 flex flex-wrap items-center gap-2.5">
             <span
               className={
                 onTrack
@@ -175,6 +182,12 @@ export default function EcosystemOverviewPage() {
               {plan.status === "ACHIEVED"
                 ? "You hit your target this month."
                 : "You are on track this month."}
+            </span>
+
+            {/* Privacy Trust Chip */}
+            <span className="flex h-7 items-center gap-1.5 rounded-full border border-line bg-white px-3 text-xs font-semibold text-navy-600 shadow-2xs">
+              <Lock size={12} className="text-emerald-600" />
+              Transactions stay at XYZ Bank. Only monthly scores reach G-Core.
             </span>
           </div>
         </div>
@@ -212,6 +225,38 @@ export default function EcosystemOverviewPage() {
               <Pill tone={targetsHitCount >= 4 ? "positive" : "amber"}>
                 Hit {targetsHitCount} of 5 targets on track
               </Pill>
+            </div>
+
+            {/* 4-Stat Plan Snapshot Grid */}
+            <div className="mt-4 grid grid-cols-2 gap-4 rounded-xl border border-line bg-paper/60 p-4 text-xs sm:grid-cols-4">
+              <div>
+                <span className="text-navy-500 font-medium">Income</span>
+                <div className="mt-1 font-display text-lg text-ink font-bold">
+                  {formatEuroPlain(plan.income)}
+                </div>
+                <div className="mt-0.5 text-[10px] text-navy-400">steady &bull; 3-mo avg</div>
+              </div>
+              <div>
+                <span className="text-navy-500 font-medium">Fixed obligations</span>
+                <div className="mt-1 font-display text-lg text-ink font-bold">
+                  {formatEuroPlain(plan.fixedObligations)}
+                </div>
+                <div className="mt-0.5 text-[10px] text-navy-400">rent, phone, transit</div>
+              </div>
+              <div>
+                <span className="text-navy-500 font-medium">Discretionary target</span>
+                <div className="mt-1 font-display text-lg text-ink font-bold">
+                  {formatEuroPlain(plan.discretionaryTarget)}
+                </div>
+                <div className="mt-0.5 text-[10px] text-amber-600 font-medium">personal ceiling</div>
+              </div>
+              <div>
+                <span className="text-navy-500 font-medium">Savings target</span>
+                <div className="mt-1 font-display text-lg text-ink font-bold">
+                  {formatEuroPlain(plan.savingsTarget)}
+                </div>
+                <div className="mt-0.5 text-[10px] text-positive-600 font-medium">monthly target</div>
+              </div>
             </div>
 
             {/* 5 Real Behavior Dimensions */}
@@ -349,36 +394,73 @@ export default function EcosystemOverviewPage() {
             </div>
           </Card>
 
-          {/* Last 3 Months Panel */}
+          {/* Last 3 Months Panel with Stacked Track Bars */}
           <Card className="p-6">
             <div className="flex items-center justify-between border-b border-line pb-4 mb-4">
               <div>
                 <SectionLabel>Historical Record</SectionLabel>
                 <h3 className="font-display text-lg text-ink">Last 3 Months History</h3>
               </div>
-              <span className="text-xs text-navy-500">Verified Ledger Data</span>
+              <div className="flex items-center gap-3 text-[11px] text-navy-500 font-medium">
+                <span className="flex items-center gap-1">
+                  <div className="h-2 w-2 rounded-full bg-navy-900" /> Spent
+                </span>
+                <span className="flex items-center gap-1">
+                  <div className="h-2 w-2 rounded-full bg-positive-500" /> Saved
+                </span>
+                <span className="flex items-center gap-1">
+                  <div className="h-2 w-2 rounded-full bg-slate-300" /> Left
+                </span>
+              </div>
             </div>
 
-            <div className="space-y-3">
-              {historicalMonths.map((m) => (
-                <div
-                  key={m.month}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-paper p-4 hover:border-navy-500/30 transition-colors"
-                >
-                  <div>
-                    <div className="font-semibold text-sm text-ink">{m.month}</div>
-                    <div className="mt-0.5 text-xs text-navy-600">{m.note}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-mono text-xs font-bold text-ink">
-                      Spent: {formatEuroPlain(m.discretionarySpent)} &bull; Saved: {formatEuroPlain(m.savingsSaved)}
+            <div className="space-y-4">
+              {historicalMonths.map((m) => {
+                const total = m.discretionarySpent + m.savingsSaved + m.remaining;
+                const spentPct = Math.round((m.discretionarySpent / total) * 100);
+                const savedPct = Math.round((m.savingsSaved / total) * 100);
+                const leftPct = Math.max(0, 100 - spentPct - savedPct);
+
+                return (
+                  <div
+                    key={m.month}
+                    className="rounded-xl border border-line bg-paper p-4 hover:border-navy-500/30 transition-colors space-y-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="font-semibold text-sm text-ink">{m.month}</div>
+                      <span className="rounded-full bg-positive-50 border border-positive-200 px-2 py-0.5 text-[10px] font-bold text-positive-600 uppercase">
+                        {m.status}
+                      </span>
                     </div>
-                    <span className="inline-block mt-1 rounded-full bg-positive-50 border border-positive-200 px-2 py-0.5 text-[10px] font-bold text-positive-600 uppercase">
-                      {m.status}
-                    </span>
+
+                    {/* Stacked Multi-Segment Track Bar */}
+                    <div className="h-3 w-full overflow-hidden rounded-full bg-line flex">
+                      <div
+                        className="h-full bg-navy-900 transition-all duration-700"
+                        style={{ width: `${spentPct}%` }}
+                        title={`Spent: €${m.discretionarySpent}`}
+                      />
+                      <div
+                        className="h-full bg-positive-500 transition-all duration-700"
+                        style={{ width: `${savedPct}%` }}
+                        title={`Saved: €${m.savingsSaved}`}
+                      />
+                      <div
+                        className="h-full bg-slate-300 transition-all duration-700"
+                        style={{ width: `${leftPct}%` }}
+                        title={`Left: €${m.remaining}`}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs text-navy-600 pt-0.5">
+                      <span>{m.note}</span>
+                      <span className="font-mono font-bold text-ink shrink-0">
+                        €{m.discretionarySpent} spent &bull; €{m.savingsSaved} saved
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </Card>
         </div>
@@ -515,22 +597,28 @@ export default function EcosystemOverviewPage() {
               </span>
             </div>
 
-            <div className="mt-4">
-              <h3 className="font-display text-xl text-ink">
-                Annual European FinTech &amp; Loyalty Summit Pass
-              </h3>
-              <p className="mt-2 text-xs text-navy-600 leading-relaxed">
-                Exclusive invitation to the annual executive roundtable and VIP networking reception in Zurich.
+            <div className="mt-4 space-y-3">
+              <div>
+                <div className="text-[10px] uppercase font-bold tracking-wider text-amber-600 flex items-center gap-1">
+                  <MapPin size={11} /> Sarajevo &bull; Once a Year
+                </div>
+                <h3 className="font-display text-xl text-ink mt-0.5">
+                  Annual European FinTech &amp; Loyalty Summit Pass
+                </h3>
+              </div>
+
+              <p className="text-xs text-navy-600 leading-relaxed">
+                Exclusive invitation to the annual executive roundtable and VIP networking reception in Sarajevo.
               </p>
 
               {/* Countdown Timer */}
-              <div className="mt-4 flex items-center gap-2 text-xs text-navy-700 bg-amber-100/60 p-2.5 rounded-lg border border-amber-200/80 font-medium">
+              <div className="flex items-center gap-2 text-xs text-navy-700 bg-amber-100/60 p-2.5 rounded-lg border border-amber-200/80 font-medium">
                 <Clock size={14} className="text-amber-600" />
                 <span>Event in <strong>{daysRemaining} days</strong> &bull; Registration closes soon</span>
               </div>
 
               {/* Checklist with Status Icons */}
-              <div className="mt-5 space-y-2.5 border-t border-amber-100 pt-4">
+              <div className="space-y-2.5 border-t border-amber-100 pt-4">
                 <div className="text-[11px] font-bold uppercase tracking-wider text-navy-500">
                   Eligibility Criteria Checklist
                 </div>
@@ -580,7 +668,7 @@ export default function EcosystemOverviewPage() {
 
               {/* Error Message if any */}
               {claimError && (
-                <div className="mt-3 text-xs text-rose-600 font-medium">
+                <div className="text-xs text-rose-600 font-medium pt-1">
                   {claimError}
                 </div>
               )}
@@ -589,7 +677,7 @@ export default function EcosystemOverviewPage() {
               <button
                 onClick={handleClaimSummit}
                 disabled={!canClaimSummit || claiming}
-                className={`mt-6 w-full flex items-center justify-center gap-2 rounded-xl py-3 text-xs font-bold shadow-xs transition-colors ${
+                className={`mt-4 w-full flex items-center justify-center gap-2 rounded-xl py-3 text-xs font-bold shadow-xs transition-colors ${
                   claimSuccess
                     ? "bg-positive-500 text-white cursor-default"
                     : canClaimSummit
