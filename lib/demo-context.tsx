@@ -137,6 +137,7 @@ interface DemoContextValue extends DemoState {
   simulateTransfer: () => Promise<void>;
   confirmTransaction: (id: string, category: Category) => Promise<void>;
   clearCelebration: () => void;
+  triggerCelebration: (celebration: Celebration) => void;
   clearEmergencyBanner: () => void;
   clearTransferBanner: () => void;
   reset: () => Promise<void>;
@@ -240,6 +241,10 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     });
   }, [applySnapshot]);
 
+  const triggerCelebration = useCallback((celebration: Celebration) => {
+    setState((prev) => ({ ...prev, celebration }));
+  }, []);
+
   return (
     <DemoContext.Provider
       value={{
@@ -250,6 +255,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
         simulateTransfer,
         confirmTransaction,
         clearCelebration,
+        triggerCelebration,
         clearEmergencyBanner,
         clearTransferBanner,
         reset,

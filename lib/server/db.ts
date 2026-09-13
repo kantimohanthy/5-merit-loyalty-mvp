@@ -192,6 +192,15 @@ function seedGMarket(db: Database.Database) {
       minTierIndex: 4,
       scarcityTotal: 3,
     },
+    {
+      id: "gm6",
+      title: "Annual FinTech & Loyalty Summit Pass",
+      category: "experience",
+      description: "Exclusive invitation & VIP access to the Annual European FinTech & Loyalty Summit.",
+      gpCost: 500,
+      minTierIndex: 2,
+      scarcityTotal: 5,
+    },
   ];
 
   for (const item of items) {
