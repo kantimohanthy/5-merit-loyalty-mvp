@@ -295,7 +295,7 @@ export default function XYZBankLoginPage() {
                     >
                       Download App
                     </button>
-                    <span className="text-[11px] text-xyz-ink-soft font-medium">iOS &bull; Android</span>
+                    <span className="text-[11px] text-xyz-ink-soft font-medium">iOS • Android</span>
                   </div>
                 </div>
 

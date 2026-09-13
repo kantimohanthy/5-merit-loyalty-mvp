@@ -63,13 +63,6 @@ export default function EcosystemLayout({
 
           <div className="flex items-center gap-3">
             <DemoControls compact />
-            <button
-              onClick={reset}
-              title="Reset Demo State"
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-cream/50 text-navy-600 hover:bg-cream hover:text-navy-900"
-            >
-              <RotateCcw size={14} />
-            </button>
             <Link
               href="/bank"
               className="flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-navy-800 hover:bg-cream"

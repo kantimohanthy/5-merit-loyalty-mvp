@@ -402,41 +402,58 @@ export default function PlainXYZBankDashboard() {
 
       {/* Campaign Popup Modal (Appears after ~4.5s) */}
       {showPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-xyz-ink/50 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="relative w-full max-w-md rounded-2xl border border-xyz-border bg-white p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-xyz-ink/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-xyz-border bg-white p-7 shadow-2xl">
+            {/* Top Decorative Ambient Accent Glow */}
+            <div className="absolute -top-16 -right-16 h-36 w-36 rounded-full bg-gradient-to-br from-amber-400/30 to-xyz-accent/20 blur-xl pointer-events-none" />
+
             <button
               onClick={handleDismissPopup}
-              className="absolute right-4 top-4 rounded-full p-1 text-xyz-ink-soft/60 hover:bg-xyz-surface hover:text-xyz-ink"
+              className="absolute right-4 top-4 rounded-full p-1.5 text-xyz-ink-soft/60 hover:bg-xyz-surface hover:text-xyz-ink transition-colors z-10"
+              aria-label="Dismiss Popup"
             >
               <X size={18} />
             </button>
 
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-xyz-accent-soft text-xyz-primary">
-              <Sparkles size={24} className="text-amber-500" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-xyz-primary text-white shadow-md">
+              <Sparkles size={24} className="text-amber-400 animate-pulse" />
             </div>
 
             <div className="mt-4">
-              <span className="inline-block rounded-full bg-xyz-accent-soft px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-xyz-primary border border-xyz-accent/30">
-                New Network Partner Feature
-              </span>
-              <h2 className="mt-2 text-xl font-bold text-xyz-ink">
-                Turn your financial habits into rewards.
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-xyz-accent-soft px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-xyz-primary border border-xyz-accent/30">
+                <Sparkles size={11} className="text-amber-500" />
+                Network Partner Opportunity
+              </div>
+              <h2 className="mt-3 text-xl font-bold text-xyz-ink tracking-tight leading-snug">
+                Turn financial habits into portable network rewards.
               </h2>
               <p className="mt-2 text-xs text-xyz-ink-soft leading-relaxed">
-                Set personalized goals, build your G-Status and unlock benefits based on how you manage your money &mdash; not simply how much you spend.
+                Connect your XYZ Bank account to G-Core to build your portable financial status and unlock exclusive cross-bank rewards.
               </p>
+            </div>
+
+            {/* Value Proposition Highlights */}
+            <div className="mt-4 space-y-2 border-t border-b border-xyz-border py-3.5 text-xs text-xyz-ink font-medium">
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                <span>Pseudonymous G-Pass ID &bull; Zero transaction details leave the bank</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-xyz-accent" />
+                <span>Earn status from healthy habits, not just high balances</span>
+              </div>
             </div>
 
             <div className="mt-6 flex items-center gap-3">
               <button
                 onClick={handleActivateGCore}
-                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-xyz-primary py-2.5 text-xs font-bold text-white shadow hover:bg-xyz-primary-dark transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-xyz-primary py-3 text-xs font-bold text-white shadow-md hover:bg-xyz-primary-dark transition-colors"
               >
                 Activate G-Core <ArrowRight size={14} />
               </button>
               <button
                 onClick={handleDismissPopup}
-                className="rounded-xl border border-xyz-border bg-white px-4 py-2.5 text-xs font-semibold text-xyz-ink-soft hover:bg-xyz-surface transition-colors"
+                className="rounded-xl border border-xyz-border bg-white px-4 py-3 text-xs font-semibold text-xyz-ink-soft hover:bg-xyz-surface transition-colors"
               >
                 Not now
               </button>
