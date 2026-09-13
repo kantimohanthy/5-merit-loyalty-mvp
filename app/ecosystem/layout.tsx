@@ -45,37 +45,37 @@ export default function EcosystemLayout({
 
       {/* Top Header */}
       <header className="border-b border-line bg-white sticky top-0 z-30 shadow-xs">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2.5">
+        <div className="mx-auto flex max-w-6xl flex-col gap-2.5 px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-3.5">
+          <div className="flex items-center justify-between gap-3">
+            <Link href="/" className="flex items-center gap-2.5 shrink-0">
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-navy-900 font-display text-sm text-white">
                 M
               </span>
-              <span className="font-display text-lg text-ink">Merit &bull; G-Core</span>
+              <span className="font-display text-base sm:text-lg text-ink font-bold tracking-tight">Merit &bull; G-Core</span>
             </Link>
             {account && (
-              <Pill tone="navy" className="hidden sm:inline-flex py-0.5 text-[11px]">
+              <Pill tone="navy" className="py-0.5 text-[10px] sm:text-[11px] shrink-0">
                 <Sparkles size={11} className="mr-1 text-amber-400" />
-                MERIT Status: {account.tierLabel}
+                {account.tierLabel}
               </Pill>
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 shrink-0">
             <DemoControls compact />
             <Link
               href="/bank"
-              className="flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-navy-800 hover:bg-cream"
+              className="flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-navy-800 hover:bg-cream shrink-0"
             >
               <Landmark size={13} />
-              XYZ Bank
+              <span>XYZ Bank</span>
             </Link>
           </div>
         </div>
 
-        {/* 5-Tab Navigation Bar */}
-        <div className="border-t border-line/60 bg-paper/80 backdrop-blur-xs">
-          <div className="mx-auto flex max-w-6xl items-center justify-start gap-1 px-6 overflow-x-auto">
+        {/* 5-Tab Navigation Bar (Horizontally Scrollable on Mobile) */}
+        <div className="border-t border-line/60 bg-paper/80 backdrop-blur-xs overflow-hidden">
+          <div className="mx-auto flex max-w-6xl items-center justify-start gap-1 px-3 sm:px-6 overflow-x-auto whitespace-nowrap scrollbar-none flex-nowrap py-0.5">
             {ECOSYSTEM_TABS.map((tab) => {
               const active =
                 tab.href === "/ecosystem"
@@ -87,7 +87,7 @@ export default function EcosystemLayout({
                   key={tab.href}
                   href={tab.href}
                   className={cn(
-                    "flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-semibold transition-colors shrink-0",
+                    "flex items-center gap-1.5 sm:gap-2 border-b-2 px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs font-semibold transition-colors shrink-0 flex-none",
                     active
                       ? "border-navy-900 text-navy-900 bg-white/70"
                       : "border-transparent text-navy-600 hover:text-navy-900 hover:bg-cream/40"
@@ -103,7 +103,7 @@ export default function EcosystemLayout({
       </header>
 
       {/* Main Content Area */}
-      <main className="mx-auto max-w-6xl px-6 py-8">
+      <main className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-8">
         {emergencyActive && <EmergencyBanner />}
         {transferBannerActive && <TransferBanner />}
         {children}

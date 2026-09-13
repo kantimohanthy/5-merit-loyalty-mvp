@@ -102,7 +102,7 @@ export default function EcosystemPassportPage() {
 
         {/* 5-Segment Tier Progression */}
         <div className="mt-6">
-          <div className="mb-2 flex items-center justify-between text-xs font-semibold text-navy-600">
+          <div className="mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs font-semibold text-navy-600">
             <span>G-Core Status Progression</span>
             <span>
               {account.nextTierAt !== null
@@ -110,7 +110,7 @@ export default function EcosystemPassportPage() {
                 : "Highest Status Tier (Diamond)"}
             </span>
           </div>
-          <div className="grid grid-cols-5 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
             {TIER_LABELS.map((label: string, idx: number) => {
               const isActive = idx === account.tierIndex;
               const isPassed = idx < account.tierIndex;

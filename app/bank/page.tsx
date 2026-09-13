@@ -105,8 +105,8 @@ export default function PlainXYZBankDashboard() {
       {/* Main Content Area */}
       <div className="flex min-h-screen flex-1 flex-col min-w-0">
         {/* Top Header / Search Row */}
-        <header className="border-b border-xyz-border bg-white px-6 py-3.5 shadow-2xs">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
+        <header className="border-b border-xyz-border bg-white px-4 py-3 sm:px-6 sm:py-3.5 shadow-2xs">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
             {/* Search Input */}
             <div className="relative flex-1 max-w-md">
               <Search
@@ -116,13 +116,13 @@ export default function PlainXYZBankDashboard() {
               <input
                 type="text"
                 readOnly
-                placeholder="Search XYZ Bank Online..."
-                className="w-full rounded-lg border border-xyz-border bg-xyz-surface pl-10 pr-4 py-2 text-xs text-xyz-ink placeholder:text-xyz-ink-soft/60 focus:outline-none focus:border-xyz-accent cursor-pointer"
+                placeholder="Search XYZ Bank..."
+                className="w-full rounded-lg border border-xyz-border bg-xyz-surface pl-10 pr-3 py-2 text-xs text-xyz-ink placeholder:text-xyz-ink-soft/60 focus:outline-none focus:border-xyz-accent cursor-pointer"
               />
             </div>
 
             {/* Account Tier Badge & G-Core Quick Link */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <div className="hidden md:inline-flex items-center gap-1.5 rounded-full border border-xyz-border bg-xyz-surface px-3 py-1 text-xs font-medium text-xyz-ink-soft">
                 <Shield size={13} className="text-xyz-accent" />
                 <span>
@@ -132,11 +132,11 @@ export default function PlainXYZBankDashboard() {
 
               <Link
                 href="/ecosystem"
-                className="inline-flex items-center gap-1.5 rounded-full border border-xyz-accent/30 bg-xyz-accent-soft px-3.5 py-1.5 text-xs font-semibold text-xyz-primary hover:bg-xyz-accent/15 transition-colors shadow-2xs"
+                className="inline-flex items-center gap-1.5 rounded-full border border-xyz-accent/30 bg-xyz-accent-soft px-3 py-1.5 text-xs font-semibold text-xyz-primary hover:bg-xyz-accent/15 transition-colors shadow-2xs shrink-0"
               >
                 <Sparkles size={13} className="text-amber-500 animate-pulse" />
-                G-Core
-                <span className="rounded bg-xyz-primary px-1.5 py-0.2 text-[9px] font-bold text-white uppercase tracking-wider">
+                <span>G-Core</span>
+                <span className="rounded bg-xyz-primary px-1.5 py-0.2 text-[9px] font-bold text-white uppercase tracking-wider hidden xs:inline">
                   New
                 </span>
               </Link>
@@ -145,7 +145,7 @@ export default function PlainXYZBankDashboard() {
         </header>
 
         {/* Dashboard Body */}
-        <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8 space-y-8">
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 sm:px-6 sm:py-8 space-y-6 sm:space-y-8">
           {/* Welcome Header */}
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>

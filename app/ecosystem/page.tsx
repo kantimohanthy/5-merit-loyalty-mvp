@@ -260,11 +260,11 @@ export default function EcosystemOverviewPage() {
         </div>
 
         {/* Top Right Controls & Preset Switcher */}
-        <div className="flex flex-col items-end gap-2.5">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col items-start sm:items-end gap-2.5 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <button
               onClick={handleSimulateMonthClick}
-              className="inline-flex items-center gap-1.5 rounded-full bg-navy-900 px-4 py-2 text-xs font-bold text-white hover:bg-navy-800 transition-colors shadow-xs"
+              className="inline-flex items-center gap-1.5 rounded-full bg-navy-900 px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-bold text-white hover:bg-navy-800 transition-colors shadow-xs"
             >
               <PlayCircle size={15} />
               Simulate Month
@@ -272,7 +272,7 @@ export default function EcosystemOverviewPage() {
 
             <button
               onClick={handleSimulateEmergencyClick}
-              className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-semibold transition-colors ${
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-semibold transition-colors ${
                 emergencyActive
                   ? "bg-rose-50 border-rose-300 text-rose-700"
                   : "bg-white border-line text-navy-900 hover:bg-paper"
@@ -292,7 +292,7 @@ export default function EcosystemOverviewPage() {
           </div>
 
           {/* Preset Buttons */}
-          <div className="flex items-center gap-1.5 rounded-xl border border-dashed border-navy-300 bg-white/70 p-1 text-xs text-navy-500">
+          <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-dashed border-navy-300 bg-white/70 p-1 text-xs text-navy-500 w-full sm:w-auto">
             <span className="px-2 text-[10px] uppercase font-bold tracking-wider text-navy-400">
               Demo state:
             </span>
@@ -602,54 +602,54 @@ export default function EcosystemOverviewPage() {
 
             {/* 3 Stacked Track Rows */}
             <div className="mt-4 space-y-3">
-              <div className="grid grid-cols-12 gap-3 items-center text-xs">
-                <div className="col-span-2 font-semibold text-navy-600">June</div>
-                <div className="col-span-6 h-4 rounded-md bg-line overflow-hidden flex">
+              <div className="grid grid-cols-12 gap-2 sm:gap-3 items-center text-xs">
+                <div className="col-span-3 sm:col-span-2 font-semibold text-navy-600">June</div>
+                <div className="col-span-9 sm:col-span-6 h-4 rounded-md bg-line overflow-hidden flex">
                   <div className="bg-navy-900 h-full" style={{ width: `${(398 / 570) * 100}%` }} title="Spent: €398" />
                   <div className="bg-emerald-600 h-full" style={{ width: `${(150 / 570) * 100}%` }} title="Saved: €150" />
                   <div className="bg-slate-300 h-full" style={{ width: `${(22 / 570) * 100}%` }} title="Left: €22" />
                 </div>
-                <div className="col-span-4 text-right font-medium text-navy-700">
+                <div className="col-span-12 sm:col-span-4 text-left sm:text-right font-medium text-navy-700 text-[11px] sm:text-xs">
                   <strong>€398</strong> spent &bull; <strong>€150</strong> saved &bull; €22 left
                 </div>
               </div>
 
-              <div className="grid grid-cols-12 gap-3 items-center text-xs">
-                <div className="col-span-2 font-semibold text-navy-600">July</div>
-                <div className="col-span-6 h-4 rounded-md bg-line overflow-hidden flex">
+              <div className="grid grid-cols-12 gap-2 sm:gap-3 items-center text-xs">
+                <div className="col-span-3 sm:col-span-2 font-semibold text-navy-600">July</div>
+                <div className="col-span-9 sm:col-span-6 h-4 rounded-md bg-line overflow-hidden flex">
                   <div className="bg-navy-900 h-full" style={{ width: `${(385 / 570) * 100}%` }} title="Spent: €385" />
                   <div className="bg-emerald-600 h-full" style={{ width: `${(120 / 570) * 100}%` }} title="Saved: €120" />
                   <div className="bg-slate-300 h-full" style={{ width: `${(65 / 570) * 100}%` }} title="Left: €65" />
                 </div>
-                <div className="col-span-4 text-right font-medium text-navy-700">
+                <div className="col-span-12 sm:col-span-4 text-left sm:text-right font-medium text-navy-700 text-[11px] sm:text-xs">
                   <strong>€385</strong> spent &bull; <strong>€120</strong> saved &bull; €65 left
                 </div>
               </div>
 
-              <div className="grid grid-cols-12 gap-3 items-center text-xs">
-                <div className="col-span-2 font-semibold text-navy-600">August</div>
-                <div className="col-span-6 h-4 rounded-md bg-line overflow-hidden flex">
+              <div className="grid grid-cols-12 gap-2 sm:gap-3 items-center text-xs">
+                <div className="col-span-3 sm:col-span-2 font-semibold text-navy-600">August</div>
+                <div className="col-span-9 sm:col-span-6 h-4 rounded-md bg-line overflow-hidden flex">
                   <div className="bg-navy-900 h-full" style={{ width: `${(392 / 570) * 100}%` }} title="Spent: €392" />
                   <div className="bg-emerald-600 h-full" style={{ width: `${(150 / 570) * 100}%` }} title="Saved: €150" />
                   <div className="bg-slate-300 h-full" style={{ width: `${(28 / 570) * 100}%` }} title="Left: €28" />
                 </div>
-                <div className="col-span-4 text-right font-medium text-navy-700">
+                <div className="col-span-12 sm:col-span-4 text-left sm:text-right font-medium text-navy-700 text-[11px] sm:text-xs">
                   <strong>€392</strong> spent &bull; <strong>€150</strong> saved &bull; €28 left
                 </div>
               </div>
 
               {/* Median Line Row */}
-              <div className="grid grid-cols-12 gap-3 items-center text-xs border-t border-dashed border-line pt-3">
-                <div className="col-span-2 font-bold text-navy-900">Median</div>
-                <div className="col-span-6 relative h-6">
-                  <div className="absolute left-[68%] top-0 bottom-0 border-l-2 border-dashed border-navy-900 flex items-center pl-1 font-semibold text-[10px] text-navy-900">
+              <div className="grid grid-cols-12 gap-2 sm:gap-3 items-center text-xs border-t border-dashed border-line pt-3">
+                <div className="col-span-3 sm:col-span-2 font-bold text-navy-900">Median</div>
+                <div className="col-span-9 sm:col-span-6 relative h-6">
+                  <div className="absolute left-[68%] top-0 bottom-0 border-l-2 border-dashed border-navy-900 flex items-center pl-1 font-semibold text-[10px] text-navy-900 whitespace-nowrap">
                     €392 spent
                   </div>
-                  <div className="absolute left-[26%] top-0 bottom-0 border-l-2 border-dashed border-emerald-600 flex items-center pl-1 font-semibold text-[10px] text-emerald-700">
+                  <div className="absolute left-[26%] top-0 bottom-0 border-l-2 border-dashed border-emerald-600 flex items-center pl-1 font-semibold text-[10px] text-emerald-700 whitespace-nowrap">
                     €150 saved
                   </div>
                 </div>
-                <div className="col-span-4 text-right text-[11px] text-navy-500 font-medium">
+                <div className="col-span-12 sm:col-span-4 text-left sm:text-right text-[11px] text-navy-500 font-medium">
                   &rarr; this month: budget ≤ €376 (−4%) &bull; save ≥ €150
                 </div>
               </div>

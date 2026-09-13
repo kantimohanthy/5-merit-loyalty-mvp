@@ -18,11 +18,21 @@
 
 html {
   scroll-behavior: smooth;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 body {
   background-color: #fbfaf7;
   color: #0d1526;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+*, ::before, ::after {
+  box-sizing: border-box;
 }
 
 ::selection {

@@ -64,7 +64,7 @@ export function BankSidebar({ onNavigateToTransactions }: BankSidebarProps) {
   return (
     <>
       {/* Mobile Top Header */}
-      <div className="flex items-center justify-between border-b border-xyz-border bg-xyz-sidebar-bg px-4 py-3 sm:hidden text-xyz-sidebar-ink z-40">
+      <div className="flex items-center justify-between border-b border-xyz-border bg-xyz-sidebar-bg px-4 py-3 lg:hidden text-xyz-sidebar-ink z-40">
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded bg-xyz-accent font-bold text-white text-xs">
             XYZ
@@ -83,14 +83,14 @@ export function BankSidebar({ onNavigateToTransactions }: BankSidebarProps) {
       {/* Mobile Sidebar Overlay Drawer */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-xyz-ink/60 backdrop-blur-xs sm:hidden"
+          className="fixed inset-0 z-40 bg-xyz-ink/60 backdrop-blur-xs lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-xyz-sidebar-bg text-xyz-sidebar-ink transition-transform duration-200 ease-in-out sm:sticky sm:top-0 sm:h-screen sm:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-xyz-sidebar-bg text-xyz-sidebar-ink transition-transform duration-200 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
