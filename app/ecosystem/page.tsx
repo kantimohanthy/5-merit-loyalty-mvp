@@ -548,6 +548,7 @@ export default function EcosystemOverviewPage() {
                     key={tier.label}
                     onMouseEnter={() => setHoveredTier(tier.label)}
                     onMouseLeave={() => setHoveredTier(null)}
+                    onClick={() => setHoveredTier((prev) => (prev === tier.label ? null : tier.label))}
                     className={`relative rounded-xl border p-3 transition-all cursor-pointer ${
                       isReached
                         ? "border-amber-300 bg-amber-50/70 text-navy-900"

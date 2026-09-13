@@ -150,14 +150,40 @@ export default function XYZBankLoginPage() {
             {/* Login Form */}
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
               <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-xyz-sidebar-ink/90">
-                  Customer ID / Username
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-xyz-sidebar-ink/90">
+                    Customer ID / Username
+                  </label>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomerId("alex.morgan@email.com");
+                        setPassword("••••••••••••");
+                        setCaptchaCode("7XK9P");
+                      }}
+                      className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold text-white hover:bg-white/25 transition-colors border border-white/10"
+                    >
+                      Alex Morgan
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomerId("jamie.novak@email.com");
+                        setPassword("••••••••••••");
+                        setCaptchaCode("7XK9P");
+                      }}
+                      className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold text-white hover:bg-white/25 transition-colors border border-white/10"
+                    >
+                      Jamie Novak
+                    </button>
+                  </div>
+                </div>
                 <input
                   type="text"
                   value={customerId}
                   onChange={(e) => setCustomerId(e.target.value)}
-                  className="mt-1.5 w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-sm text-white placeholder:text-white/40 focus:bg-white/20 focus:outline-none focus:ring-2 focus:ring-xyz-accent"
+                  className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-sm text-white placeholder:text-white/40 focus:bg-white/20 focus:outline-none focus:ring-2 focus:ring-xyz-accent"
                   placeholder="Enter your Customer ID"
                 />
               </div>
