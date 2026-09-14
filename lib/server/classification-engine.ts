@@ -19,6 +19,7 @@ export interface ClassificationResult {
   classification: Classification;
   confidence: number;
   alternates: { category: Category; confidence: number }[];
+  reasonCode?: "UNKNOWN_CATEGORY_FALLBACK" | "MERCHANT_RULE_MATCH" | "MCC_RULE_MATCH";
 }
 
 // Rules-based classification — explainable, no LLM/ML required for the MVP.
@@ -58,16 +59,20 @@ function secondBestCategory(primary: Category): Category {
 }
 
 export function classifyTransaction(input: {
-  merchant: string;
+  merchant?: string;
   mcc?: string;
 }): ClassificationResult {
   let category: Category | null = null;
   let confidence = 0.55;
+  let reasonCode: ClassificationResult["reasonCode"] = undefined;
+
+  const merchantStr = input.merchant ?? "";
 
   for (const rule of MERCHANT_RULES) {
-    if (rule.test.test(input.merchant)) {
+    if (merchantStr && rule.test.test(merchantStr)) {
       category = rule.category;
       confidence = rule.confidence;
+      reasonCode = "MERCHANT_RULE_MATCH";
       break;
     }
   }
@@ -75,14 +80,16 @@ export function classifyTransaction(input: {
   if (!category && input.mcc && MCC_RULES[input.mcc]) {
     category = MCC_RULES[input.mcc];
     confidence = 0.8;
+    reasonCode = "MCC_RULE_MATCH";
   }
 
   if (!category) {
     category = "Other";
     confidence = 0.55;
+    reasonCode = "UNKNOWN_CATEGORY_FALLBACK";
   }
 
-  const classification = CATEGORY_CLASSIFICATION[category];
+  const classification = CATEGORY_CLASSIFICATION[category] ?? "discretionary";
   const alt = secondBestCategory(category);
   const altConfidence = Math.round((1 - confidence) * 100) / 100;
 
@@ -90,6 +97,7 @@ export function classifyTransaction(input: {
     category,
     classification,
     confidence,
+    reasonCode,
     alternates: [
       { category, confidence },
       ...(altConfidence > 0.005 ? [{ category: alt, confidence: altConfidence }] : []),

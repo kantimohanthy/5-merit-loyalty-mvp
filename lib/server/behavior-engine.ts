@@ -1,4 +1,14 @@
 import type { Classification, PlanStatus } from "@/lib/types";
+import { BEHAVIOR_MODEL_VERSION, MODEL_WEIGHTS } from "./model-metadata";
+
+export type ReasonCode =
+  | "PROTECTED_HEALTHCARE_EXPENSE"
+  | "INTERNAL_TRANSFER_EXCLUDED"
+  | "BUDGET_WITHIN_BASELINE"
+  | "BUDGET_ABOVE_BASELINE"
+  | "PAYMENT_CONSISTENT"
+  | "SAVINGS_TARGET_MET"
+  | "UNKNOWN_CATEGORY_FALLBACK";
 
 export interface CustomerStateRow {
   customer_id: string;
@@ -34,22 +44,14 @@ export interface BehaviorDimensionResult {
 }
 
 export interface BehaviorEvaluation {
+  modelVersion: string;
   discretionarySpent: number;
   savingsSaved: number;
   status: PlanStatus;
   overall: number; // 0-1, the weighted Behavior Index
   dimensions: BehaviorDimensionResult[];
+  reasonCodes: ReasonCode[];
 }
-
-// Explainable weighted model — every weight below is visible and defensible,
-// deliberately not "black box." Weights sum to 1.
-const WEIGHTS = {
-  budget: 0.3,
-  savings: 0.2,
-  payment: 0.25,
-  liquidity: 0.15,
-  goal: 0.1,
-} as const;
 
 function tierFor(score: number): "STRONG" | "MODERATE" | "DEVELOPING" {
   if (score >= 0.75) return "STRONG";
@@ -61,10 +63,6 @@ export function evaluateBehavior(
   state: CustomerStateRow,
   transactions: EvaluableTransaction[]
 ): BehaviorEvaluation {
-  // Discretionary spend is computed live from transactions that actually
-  // count — protected expenses and detected internal transfers are excluded,
-  // which is the whole point of running this server-side instead of trusting
-  // the client's own arithmetic.
   const discretionarySpent = transactions
     .filter(
       (t) =>
@@ -74,10 +72,6 @@ export function evaluateBehavior(
     )
     .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
-  // Savings is computed live from actual savings-classified transactions
-  // (not a stored scalar) — this is what "money moved into savings" means
-  // to the engine, and it's what /api/simulation/month adds a real
-  // transaction for, rather than just incrementing a number.
   const savingsSaved = transactions
     .filter((t) => t.classification === "savings" && !t.excludedForGaming)
     .reduce((sum, t) => sum + Math.max(0, t.amount), 0);
@@ -100,22 +94,43 @@ export function evaluateBehavior(
 
   const dimensions: BehaviorDimensionResult[] = rawDimensions.map((d) => ({
     ...d,
-    weight: WEIGHTS[d.key],
+    weight: MODEL_WEIGHTS[d.key],
     value: tierFor(d.score),
   }));
 
   const overall =
-    state.budget_score * WEIGHTS.budget +
-    state.savings_score * WEIGHTS.savings +
-    state.payment_score * WEIGHTS.payment +
-    state.liquidity_score * WEIGHTS.liquidity +
-    goalProgress * WEIGHTS.goal;
+    state.budget_score * MODEL_WEIGHTS.budget +
+    state.savings_score * MODEL_WEIGHTS.savings +
+    state.payment_score * MODEL_WEIGHTS.payment +
+    state.liquidity_score * MODEL_WEIGHTS.liquidity +
+    goalProgress * MODEL_WEIGHTS.goal;
+
+  const reasonCodes: ReasonCode[] = [];
+  if (transactions.some((t) => t.protectedFlag)) {
+    reasonCodes.push("PROTECTED_HEALTHCARE_EXPENSE");
+  }
+  if (transactions.some((t) => t.excludedForGaming)) {
+    reasonCodes.push("INTERNAL_TRANSFER_EXCLUDED");
+  }
+  if (overspend) {
+    reasonCodes.push("BUDGET_ABOVE_BASELINE");
+  } else {
+    reasonCodes.push("BUDGET_WITHIN_BASELINE");
+  }
+  if (state.payment_score >= 0.75) {
+    reasonCodes.push("PAYMENT_CONSISTENT");
+  }
+  if (goalMet) {
+    reasonCodes.push("SAVINGS_TARGET_MET");
+  }
 
   return {
+    modelVersion: BEHAVIOR_MODEL_VERSION,
     discretionarySpent,
     savingsSaved,
     status,
     overall,
     dimensions,
+    reasonCodes,
   };
 }
