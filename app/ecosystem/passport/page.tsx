@@ -228,7 +228,7 @@ export default function EcosystemPassportPage() {
                 <span className={`font-semibold text-xs ${switchedBank ? "text-positive-950" : "text-white"}`}>G-Core Network Status</span>
               </div>
               <Pill tone={switchedBank ? "positive" : "navy"}>
-                {switchedBank ? "Survived Untouched!" : "Cross-Bank Portable"}
+                {switchedBank ? "Survived Untouched!" : "Portable Concept"}
               </Pill>
             </div>
             <div className={`mt-3 space-y-1.5 rounded-lg p-3 text-xs ${switchedBank ? "bg-white text-navy-900" : "bg-white/10 text-white"}`}>
